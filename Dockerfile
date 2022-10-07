@@ -1,17 +1,11 @@
 FROM node:18-alpine3.16 AS ninja-node
 
-# Install git
-RUN apk update
-RUN apk add git
-
 # Due to npm permission error I used newly created user for all app commands
 
 RUN addgroup app && adduser -S -G app app
 RUN mkdir /app && chown app:app /app
 
 USER app
-
-RUN git config --global --add safe.directory /app
 
 # Log from that error:
 
@@ -35,4 +29,4 @@ COPY --chown=app:app . .
 
 EXPOSE 8080
 
-CMD [ "npm", "start" ]
+CMD [ "npm", "run", "serve" ]
