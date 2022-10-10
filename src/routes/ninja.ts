@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import getVersionController from '../controllers/training';
+import getVersionController from '../controllers/ninja';
 
 const router = Router();
 

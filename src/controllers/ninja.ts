@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import { Request, Response } from 'express';
+import { version } from '../../package.json';
 
 const getCommitHash = (): string => {
   const rev = readFileSync('.git/HEAD').toString().trim();
@@ -14,7 +15,6 @@ const getCommitHash = (): string => {
 
 const getVersionController = async (req: Request, res: Response) => {
   const commitHash: string = getCommitHash();
-  const version: string | undefined = process.env.npm_package_version;
 
   res.status(200).json({
     commitHash,

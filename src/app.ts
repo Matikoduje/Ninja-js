@@ -1,12 +1,12 @@
 import express from 'express';
 
-import trainingRoutes from './routes/training';
+import config from 'config';
+import routes from './routes/ninja';
 
 const app = express();
-const port = 8080;
-
-app.use(trainingRoutes);
+const port: number = config.get('App.port');
+app.use(routes);
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`Server is listening on port ${port}...`);
 });
