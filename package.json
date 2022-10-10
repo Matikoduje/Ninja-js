@@ -4,9 +4,9 @@
   "description": "",
   "main": "dist/app.js",
   "scripts": {
-    "build": "rimraf dist && tsc",
+    "build": "rimraf dist && tsc --p 'src/tsconfig.json'",
     "preserve": "npm run build",
-    "serve": "concurrently \"tsc --watch\" \"nodemon -q dist/app.js\"",
+    "serve": "concurrently \"tsc -p 'src/tsconfig.json' --watch\" \"nodemon -q dist/app.js\"",
     "prestart": "npm run build",
     "test": "jest",
     "start": "node dist/app.js",

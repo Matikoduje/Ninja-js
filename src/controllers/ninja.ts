@@ -1,5 +1,6 @@
 import childProcess from 'child_process';
 import { Request, Response } from 'express';
+import { version } from '../../package.json';
 
 const getCommitHash = (): string => {
   return childProcess.execSync('git rev-parse HEAD').toString().trim();
@@ -7,7 +8,6 @@ const getCommitHash = (): string => {
 
 const getVersionController = async (req: Request, res: Response) => {
   const commitHash: string = getCommitHash();
-  const version: string | undefined = process.env.npm_package_version;
 
   res.status(200).json({
     commitHash,
