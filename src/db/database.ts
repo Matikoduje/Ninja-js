@@ -1,13 +1,9 @@
 import { Pool } from 'pg';
+import config from 'config';
 
-const connectionData = {
-  password: process.env.DB_PASS,
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME
-};
+const dbConfig: object = config.get('App.database');
 
-const pool = new Pool(connectionData);
+const pool = new Pool(dbConfig);
 const query = (text: string, params: any) => {
   return pool.query(text, params);
 };
