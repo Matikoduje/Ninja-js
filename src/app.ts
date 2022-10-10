@@ -2,20 +2,24 @@ import express from 'express';
 
 import config from 'config';
 import routes from './routes/ninja';
-import query from './db/database';
+import { dbCheck } from './db/database';
 
 const app = express();
 const port: number = config.get('App.port');
+const host: string = config.get('App.host');
 app.use(routes);
 
-const dbQuery = async () => {
-  const { rows } = await query('SELECT * FROM ninjas', []);
-  return rows.length > 0
-    ? 'Database created and connected successfully.'
-    : "Database doesn't work correctly. Please check configuration.";
-};
+async function startServer() {
+  try {
+    const dbCheckResult = await dbCheck();
+    console.log(dbCheckResult);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    app.listen(port, () => {
+      console.log(`Server is listening on http://${host}:${port}`);
+    });
+  }
+}
 
-app.listen(port, () => {
-  const dbHealthCheck = dbQuery;
-  console.log(`${dbHealthCheck} Server is listening on port ${port}...`);
-});
+startServer();

@@ -1,12 +1,11 @@
-CREATE TABLE ninjas
+CREATE TABLE testSeed
 (
     id SERIAL,
     name text,
-    weapon text,
-    CONSTRAINT ninjas_pkey PRIMARY KEY (id)
+    CONSTRAINT testSeed_pkey PRIMARY KEY (id)
 );
 
-INSERT INTO ninjas(name, weapon) VALUES
- ('Meadow Crystalfreak ', 'Katana'),
- ('Buddy-Ray Perceptor', 'Shuriken'),
- ('Prince Flitterbell', 'Yari');
+INSERT INTO testSeed(name) VALUES
+ ('Seed1'),
+ ('Seed2'),
+ ('Seed3');

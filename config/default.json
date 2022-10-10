@@ -1,6 +1,7 @@
 {
   "App": {
     "port": 8080,
+    "host": "localhost",
     "database": {
       "host": "postgres",
       "database": "root",
