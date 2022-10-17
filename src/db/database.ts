@@ -1,15 +1,23 @@
 import { Pool } from 'pg';
 import config from 'config';
 
-type dbConfiguration = {
+type postgresConfiguration = {
   host: string;
   password: string;
   user: string;
   database: string;
+  port: number;
 };
 
-const dbConfig: dbConfiguration = config.get('App.database');
-const pool = new Pool(dbConfig);
+const createConnectionString = (): string => {
+  const dbPostgres: postgresConfiguration = config.get(
+    'App.postgresConfiguration'
+  );
+  const { user, password, host, port, database } = dbPostgres;
+  return `postgresql://${user}:${password}@${host}:${port}/${database}`;
+};
+
+const pool = new Pool({ connectionString: createConnectionString() });
 
 const query = (text: string, params: any) => {
   return pool.query(text, params);

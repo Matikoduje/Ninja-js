@@ -1,11 +1,14 @@
-version: '3.3'
+version: '3.6'
 services:
-  app:
-    build: .
+  #================================= DEVELOPMENT =============================================
+  app-dev:
+    build:
+      context: .
+      target: development
     depends_on:
-      - postgres
+      - 'postgres'
     ports:
-      - '8080:8080'
+      - '8000:8000'
     volumes:
       # Maps our current project directory `.` to
       # our working directory in the container
@@ -13,7 +16,17 @@ services:
       # node_modules workaround for volumes
       # https://stackoverflow.com/a/32785014
       - /app/node_modules
-
+  #================================= PRODUCTION =============================================
+  app-prod:
+    build:
+      context: .
+      target: production
+    command: sh -c './docker-scripts/wait-for postgres:5432 -- npm start'
+    depends_on:
+      - 'postgres'
+    ports:
+      - '8080:8080'
+  #================================= POSTGRES DB =============================================
   postgres:
     container_name: pg_container
     image: postgres:14.5-alpine

@@ -1,12 +1,14 @@
 {
   "App": {
-    "port": 8080,
+    "port": 8000,
     "host": "localhost",
-    "database": {
+    "logLevel": "trace",
+    "postgresConfiguration": {
       "host": "postgres",
-      "database": "root",
+      "user": "root",
       "password": "root",
-      "user": "root"
+      "port": 5432,
+      "database": "root"
     }
   }
 }
