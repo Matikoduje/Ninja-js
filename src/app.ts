@@ -3,7 +3,7 @@ import express from 'express';
 import config from 'config';
 import routes from './routes/ninja';
 import { dbCheck } from './db/database';
-import logger from './logger/logger';
+import logger from './logger/index';
 
 const app = express();
 const port: number = config.get('App.port');
