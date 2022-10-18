@@ -5,10 +5,10 @@
     "logLevel": "trace",
     "postgresConfiguration": {
       "host": "postgres",
-      "user": "root",
-      "password": "root",
+      "user": "",
+      "password": "",
       "port": 5432,
-      "database": "root"
+      "database": ""
     }
   }
 }
