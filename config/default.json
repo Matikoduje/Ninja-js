@@ -4,10 +4,9 @@
     "host": "localhost",
     "logLevel": "trace",
     "postgresConfiguration": {
-      "host": "postgres",
+      "dbConnectionString": "postgresql://%USER%:%PASSWORD%@postgres:5432/%DATABASE%",
       "user": "",
       "password": "",
-      "port": 5432,
       "database": ""
     }
   }
