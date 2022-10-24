@@ -1,0 +1,50 @@
+version: '3.6'
+services:
+  #================================= DEVELOPMENT =============================================
+  app-dev:
+    build:
+      context: .
+      target: development
+    depends_on:
+      - 'postgres'
+    ports:
+      - '8000:8000'
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_CONNECTION_STRING=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+    volumes:
+      # Maps our current project directory `.` to
+      # our working directory in the container
+      - ./:/app/
+      # node_modules workaround for volumes
+      # https://stackoverflow.com/a/32785014
+      - /app/node_modules
+  #================================= PRODUCTION =============================================
+  app-prod:
+    build:
+      context: .
+      target: production
+    command: sh -c './docker-scripts/wait-for postgres:${POSTGRES_PORT} -- npm start'
+    depends_on:
+      - 'postgres'
+    ports:
+      - '8080:8080'
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_CONNECTION_STRING=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+  #================================= POSTGRES DB =============================================
+  postgres:
+    container_name: pg_container
+    image: postgres:14.5-alpine
+    restart: always
+    env_file:
+      - ./.env
+    ports:
+      - '${POSTGRES_PORT}:${POSTGRES_PORT}'
+    volumes:
+      # When the PostgreSQL container is started it will run any scripts
+      # provided in the `docker-entrypoint-initdb.d` directory, this connects
+      # our seed file to that directory so that it gets run
+      - ./database-seed.sql:/docker-entrypoint-initdb.d/database-seed.sql
