@@ -1,30 +1,13 @@
 import { Pool } from 'pg';
 import config from 'config';
 
-type postgresConfiguration = {
-  password: string;
-  user: string;
-  database: string;
-  dbConnectionString: string;
-};
+const postgresConnectionString: string = config.get(
+  'App.postgresConfiguration.postgresConnectionString'
+);
 
-const prepareConnectionString = (): string => {
-  const dbPostgres: postgresConfiguration = config.get(
-    'App.postgresConfiguration'
-  );
-  const { user, password, database, dbConnectionString } = dbPostgres;
-  const replacements: { [key: string]: string } = {
-    '%USER%': user,
-    '%PASSWORD%': password,
-    '%DATABASE%': database
-  };
-
-  return dbConnectionString.replace(/%\w+%/g, (matched) => {
-    return matched in replacements ? replacements[matched] : matched;
-  });
-};
-
-const pool = new Pool({ connectionString: prepareConnectionString() });
+const pool = new Pool({
+  connectionString: postgresConnectionString
+});
 
 const query = (text: string, params: any) => {
   return pool.query(text, params);

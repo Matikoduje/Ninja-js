@@ -1,6 +1,7 @@
 {
   "App": {
     "postgresConfiguration": {
+      "postgresConnectionString": "POSTGRES_CONNECTION_STRING",
       "user": "POSTGRES_USER",
       "password": "POSTGRES_PASSWORD",
       "database": "POSTGRES_DB"
