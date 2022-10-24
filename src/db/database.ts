@@ -15,7 +15,7 @@ const query = (text: string, params: any) => {
 
 const dbCheck = async () => {
   try {
-    const { rows } = await query('SELECT * FROM testSeed', []);
+    const { rows } = await query('SELECT * FROM users', []);
     return rows.length > 0
       ? 'Database created and connected successfully.'
       : "Database seed doesn't work correctly.";
