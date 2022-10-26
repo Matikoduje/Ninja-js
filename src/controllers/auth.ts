@@ -29,11 +29,18 @@ export const logIn = async (
         401
       );
     }
+    if (user.isDeleted()) {
+      throw new StatusCodeError(
+        "Your account is deleted. You can't login into site.",
+        401
+      );
+    }
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
     res.status(200).json({
-      message: 'Successfully login into site.',
+      message:
+        'Successfully login into site. Please save authorization tokens. You should use this tokens due to authorize actions in site.',
       refreshToken,
       accessToken
     });

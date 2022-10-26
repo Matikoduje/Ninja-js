@@ -7,7 +7,8 @@ class User {
     private email: string,
     private password: string,
     private id: number | null = null,
-    private created_at: Date | null = null
+    private created_at: Date | null = null,
+    private deleted_at: Date | null = null
   ) {}
 
   async save() {
@@ -37,6 +38,10 @@ class User {
     return this.id;
   }
 
+  isDeleted() {
+    return this.deleted_at !== null;
+  }
+
   async addRoleToUser(userId: number, roleId: number) {
     const insertUserIntoUserRolesQuery =
       'INSERT INTO user_roles(user_id, role_id) VALUES($1, $2) RETURNING *';
@@ -53,8 +58,8 @@ class User {
     if (rows.length === 0) {
       return null;
     }
-    const { user_id, email, password, created_at } = rows[0];
-    return new User(email, password, user_id, created_at);
+    const { user_id, email, password, created_at, deleted_at } = rows[0];
+    return new User(email, password, user_id, created_at, deleted_at);
   }
 
   static async getUsers() {

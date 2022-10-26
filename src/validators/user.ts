@@ -1,10 +1,14 @@
 import Joi from 'joi';
 import User from '../models/user';
+import { StatusCodeError } from '../handlers/custom-errors';
 
 const isEmailUsed = async (email: string) => {
   const user = await User.loadUser(email);
   if (user) {
-    throw new Error('Email is already in used. Please provide other email.');
+    throw new StatusCodeError(
+      'Email is already in used. Please provide other email.',
+      409
+    );
   }
 };
 
