@@ -1,6 +1,8 @@
 {
   "App": {
     "port": 8080,
-    "logLevel": "info"
+    "logLevel": "info",
+    "accessTokenSecret": "VZ8dOC5fALYMoDxCVUEtDqPjWpMKb614",
+    "refreshTokenSecret": "3vzTbOyKLDAoUWTYiYM7bJy9B6HqGduD"
   }
 }

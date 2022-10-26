@@ -3,6 +3,8 @@
     "port": 8000,
     "host": "localhost",
     "logLevel": "trace",
+    "accessTokenSecret": "devSecret",
+    "refreshTokenSecret": "devSecretRefresh",
     "postgresConfiguration": {
       "postgresConnectionString": "",
       "user": "",

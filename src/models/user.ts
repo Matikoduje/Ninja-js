@@ -19,6 +19,14 @@ class User {
     return this.password;
   }
 
+  getEmail() {
+    return this.email;
+  }
+
+  getId() {
+    return this.id;
+  }
+
   static async loadUser(userEmail: string) {
     const getQuery = 'SELECT * FROM users where email=$1';
     const { rows } = await query(getQuery, [userEmail]);
