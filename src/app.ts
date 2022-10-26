@@ -8,6 +8,7 @@ import bodyParser from 'body-parser';
 import config from 'config';
 import versionRoutes from './routes/version';
 import userRoutes from './routes/user';
+import authRoutes from './routes/auth';
 import { dbCheck } from './db/database';
 import logger from './logger/_logger';
 
@@ -35,6 +36,7 @@ const errorRequestHandler: ErrorRequestHandler = (
 
 app.use(versionRoutes);
 app.use(userRoutes);
+app.use(authRoutes);
 app.use(errorRequestHandler);
 
 async function startServer() {

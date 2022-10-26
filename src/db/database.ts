@@ -19,7 +19,7 @@ const dbCheck = async () => {
     return rows.length > 0
       ? 'Database created and connected successfully.'
       : "Database seed doesn't work correctly.";
-  } catch (error) {
+  } catch (err) {
     throw new Error("Can't connect to database");
   }
 };

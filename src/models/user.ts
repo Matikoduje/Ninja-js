@@ -15,13 +15,18 @@ class User {
     return rows[0].user_id;
   }
 
-  static async loadUser(email: string, password: string) {
-    const getQuery = 'SELECT * FROM users where email=$1 and password=$2';
-    const { rows } = await query(getQuery, [email, password]);
-    if (rows[0]) {
-      const { user_id, email, password, created_at } = rows[0];
-      return new User(email, password, user_id, created_at);
+  getPassword() {
+    return this.password;
+  }
+
+  static async loadUser(userEmail: string) {
+    const getQuery = 'SELECT * FROM users where email=$1';
+    const { rows } = await query(getQuery, [userEmail]);
+    if (rows.length === 0) {
+      return null;
     }
+    const { user_id, email, password, created_at } = rows[0];
+    return new User(email, password, user_id, created_at);
   }
 
   static async getUsers() {
@@ -36,14 +41,6 @@ class User {
         created_at
       };
     });
-  }
-
-  static async isEmailExists(email: string) {
-    const { rows } = await query(
-      'SELECT COUNT(*)::INT FROM users where email=$1',
-      [email]
-    );
-    return rows[0].count > 0 ? true : false;
   }
 }
 
