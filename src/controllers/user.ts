@@ -22,14 +22,29 @@ export const addUser = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
 
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
-    const preparedUser = new User(email, hashedPassword);
+    const preparedUser = new User(username, hashedPassword);
     await preparedUser.save();
     res
       .status(201)
+      .json({ message: 'User created! You can login into site now.' });
+  } catch (err) {
+    const error = appErrorHandler(err);
+    next(error);
+  }
+};
+
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    res
+      .status(200)
       .json({ message: 'User created! You can login into site now.' });
   } catch (err) {
     const error = appErrorHandler(err);

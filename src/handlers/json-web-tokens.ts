@@ -8,7 +8,7 @@ const accessTokenSecret: string = config.get('App.accessTokenSecret');
 export const generateAccessToken = (user: User) => {
   return jwt.sign(
     {
-      email: user.getEmail(),
+      username: user.getUsername(),
       id: user.getId()
     },
     accessTokenSecret,
@@ -19,7 +19,7 @@ export const generateAccessToken = (user: User) => {
 export const generateRefreshToken = (user: User) => {
   return jwt.sign(
     {
-      email: user.getEmail(),
+      username: user.getUsername(),
       id: user.getId()
     },
     refreshTokenSecret,

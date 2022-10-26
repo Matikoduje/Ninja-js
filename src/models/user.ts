@@ -1,14 +1,14 @@
 import { query, client } from '../db/database';
 import Role from './role';
-import logger from '../logger/_logger';
 
 class User {
   constructor(
-    private email: string,
+    private username: string,
     private password: string,
     private id: number | null = null,
     private created_at: Date | null = null,
-    private deleted_at: Date | null = null
+    private deleted_at: Date | null = null,
+    private token: string = ''
   ) {}
 
   async save() {
@@ -17,10 +17,10 @@ class User {
     try {
       await transactionClient.query('BEGIN');
       const insertUserQuery =
-        'INSERT INTO users(password, email) VALUES($1, $2) RETURNING user_id';
+        'INSERT INTO users(password, username) VALUES($1, $2) RETURNING user_id';
       const { rows } = await transactionClient.query(insertUserQuery, [
         this.password,
-        this.email
+        this.username
       ]);
       const userId = rows[0].user_id;
       const roleUserId = await Role.getRoleIdByName('user');
@@ -40,8 +40,8 @@ class User {
     return this.password;
   }
 
-  getEmail() {
-    return this.email;
+  getUsername() {
+    return this.username;
   }
 
   getId() {
@@ -59,14 +59,15 @@ class User {
   //   return rows[0].user_id === userId;
   // }
 
-  static async loadUser(userEmail: string) {
-    const getQuery = 'SELECT * FROM users where email=$1';
-    const { rows } = await query(getQuery, [userEmail]);
+  static async loadUser(usernameToLoad: string) {
+    const getQuery = 'SELECT * FROM users where username=$1';
+    const { rows } = await query(getQuery, [usernameToLoad]);
     if (rows.length === 0) {
       return null;
     }
-    const { user_id, email, password, created_at, deleted_at } = rows[0];
-    return new User(email, password, user_id, created_at, deleted_at);
+    const { user_id, username, password, created_at, deleted_at, token } =
+      rows[0];
+    return new User(username, password, user_id, created_at, deleted_at, token);
   }
 
   static async getUsers() {
@@ -74,10 +75,10 @@ class User {
       'SELECT * FROM users where deleted_at IS NULL',
       []
     );
-    return rows.map(({ user_id, email, created_at }) => {
+    return rows.map(({ user_id, username, created_at }) => {
       return {
         id: user_id,
-        email,
+        username,
         created_at
       };
     });

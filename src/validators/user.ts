@@ -2,20 +2,20 @@ import Joi from 'joi';
 import User from '../models/user';
 import { StatusCodeError } from '../handlers/custom-errors';
 
-const isEmailUsed = async (email: string) => {
-  const user = await User.loadUser(email);
+const isUsernameUsed = async (username: string) => {
+  const user = await User.loadUser(username);
   if (user) {
     throw new StatusCodeError(
-      'Email is already in used. Please provide other email.',
+      'Username is already in used. Please provide other username.',
       409
     );
   }
 };
 
-const emailValidation = Joi.string().required().email().messages({
-  'string.empty': 'Email cannot be an empty field.',
-  'any.required': 'email is a required field.',
-  'string.email': 'Email should be a valid email address.'
+const usernameValidation = Joi.string().required().email().messages({
+  'string.empty': 'Username cannot be an empty field.',
+  'any.required': 'username is a required field.',
+  'string.email': 'Username should be a valid email address.'
 });
 const passwordValidation = Joi.string().min(6).max(30).required().messages({
   'string.empty': 'Password cannot be an empty field.',
@@ -31,10 +31,10 @@ const userValidationSchemas = {
       'any.required': 'confirm_password is a required field.',
       'any.only': 'Confirm password does not match password.'
     }),
-    email: emailValidation.external(isEmailUsed)
+    username: usernameValidation.external(isUsernameUsed)
   }),
   authentication: Joi.object({
-    email: emailValidation,
+    username: usernameValidation,
     password: passwordValidation
   })
 };
