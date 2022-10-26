@@ -1,6 +1,5 @@
 import { Request, Response, ErrorRequestHandler, NextFunction } from 'express';
 import { ValidationError } from 'joi';
-import logger from '../logger/_logger';
 
 export class StatusCodeError extends Error {
   statusCode: number | undefined;
@@ -37,6 +36,5 @@ export const appErrorRequestHandler: ErrorRequestHandler = (
   const errorOutput = {
     message
   };
-  logger.trace({ err });
   res.status(statusCode).json(errorOutput);
 };
