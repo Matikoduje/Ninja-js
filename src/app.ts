@@ -1,14 +1,42 @@
-import express from 'express';
-
+import express, {
+  Request,
+  Response,
+  ErrorRequestHandler,
+  NextFunction
+} from 'express';
+import bodyParser from 'body-parser';
 import config from 'config';
-import routes from './routes/ninja';
+import versionRoutes from './routes/version';
+import userRoutes from './routes/user';
 import { dbCheck } from './db/database';
 import logger from './logger/_logger';
 
 const app = express();
+app.use(bodyParser.json());
+
 const port: number = config.get('App.port');
 const host: string = config.get('App.host');
-app.use(routes);
+
+const errorRequestHandler: ErrorRequestHandler = (
+  err: any,
+  req: Request,
+  res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  next: NextFunction
+) => {
+  const statusCode = err.statusCode || 500;
+  const { message } = err;
+  const validationError = err.validationError || '';
+  const errorOutput = {
+    message,
+    validationError
+  };
+  res.status(statusCode).json(errorOutput);
+};
+
+app.use(versionRoutes);
+app.use(userRoutes);
+app.use(errorRequestHandler);
 
 async function startServer() {
   try {

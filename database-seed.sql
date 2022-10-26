@@ -1,8 +1,7 @@
 CREATE TABLE users
 (
     user_id SERIAL PRIMARY KEY,
-    username VARCHAR (50) UNIQUE NOT NULL,
-    password VARCHAR (50) NOT NULL,
+    password VARCHAR (255) NOT NULL,
     email VARCHAR (255) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     deleted_at TIMESTAMP
@@ -11,7 +10,7 @@ CREATE TABLE users
 CREATE TABLE roles
 (
     role_id SERIAL PRIMARY KEY,
-    role_name VARCHAR (255) UNIQUE NOT NULL
+    role_name VARCHAR (50) UNIQUE NOT NULL
 );
 
 CREATE TABLE user_roles
@@ -28,9 +27,9 @@ CREATE TABLE user_roles
 INSERT INTO roles(role_name) VALUES ('admin');
 INSERT INTO roles(role_name) VALUES ('user');
 
-INSERT INTO users(username, password, email) VALUES ('Admin', 'qwerty', 'admin@test.com');
-INSERT INTO users(username, password, email) VALUES ('Jacek', 'qwerty', 'jacek@test.com');
-INSERT INTO users(username, password, email, deleted_at) VALUES ('Placek', 'qwerty', 'placek@test.com', NOW());
+INSERT INTO users(password, email) VALUES ('$2a$12$Ppm4DOlHGXg.Svv.MS9LZeyPqPn7h2QYigrZ.6mlV..JW9R1h6Q3.', 'admin@test.com');
+INSERT INTO users(password, email) VALUES ('$2a$12$Ppm4DOlHGXg.Svv.MS9LZeyPqPn7h2QYigrZ.6mlV..JW9R1h6Q3.', 'user@test.com');
+INSERT INTO users(password, email, deleted_at) VALUES ('$2a$12$Ppm4DOlHGXg.Svv.MS9LZeyPqPn7h2QYigrZ.6mlV..JW9R1h6Q3.', 'deleted@test.com', NOW());
 
 INSERT INTO user_roles(user_id, role_id) VALUES (1,1);
 INSERT INTO user_roles(user_id, role_id) VALUES (2,2);
