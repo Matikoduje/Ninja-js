@@ -1,4 +1,4 @@
-import query from '../db/database';
+import { query, client } from '../db/database';
 import Role from './role';
 import logger from '../logger/_logger';
 
@@ -12,18 +12,28 @@ class User {
   ) {}
 
   async save() {
-    const insertQuery =
-      'INSERT INTO users(password, email) VALUES($1, $2) RETURNING user_id';
-    const { rows } = await query(insertQuery, [this.password, this.email]);
-    const userId = rows[0].user_id;
-    const userRoleId = await Role.getRoleIdByName('user');
-    const isRoleUserAdded = await this.addRoleToUser(userId, userRoleId);
-    if (isRoleUserAdded) {
-      logger.info(`User ${userId} has successfully added user role.`);
-    } else {
-      logger.warn(`Due to DB problems. User ${userId} hadn't add role user.`);
+    const transactionClient = await client();
+
+    try {
+      await transactionClient.query('BEGIN');
+      const insertUserQuery =
+        'INSERT INTO users(password, email) VALUES($1, $2) RETURNING user_id';
+      const { rows } = await transactionClient.query(insertUserQuery, [
+        this.password,
+        this.email
+      ]);
+      const userId = rows[0].user_id;
+      const roleUserId = await Role.getRoleIdByName('user');
+      const addUserRoleQuery =
+        'INSERT INTO user_roles(user_id, role_id) VALUES($1, $2)';
+      await transactionClient.query(addUserRoleQuery, [userId, roleUserId]);
+      await transactionClient.query('COMMIT');
+    } catch (err) {
+      await transactionClient.query('ROLLBACK');
+      throw err;
+    } finally {
+      transactionClient.release();
     }
-    return userId;
   }
 
   getPassword() {
@@ -42,15 +52,12 @@ class User {
     return this.deleted_at !== null;
   }
 
-  async addRoleToUser(userId: number, roleId: number) {
-    const insertUserIntoUserRolesQuery =
-      'INSERT INTO user_roles(user_id, role_id) VALUES($1, $2) RETURNING *';
-    const { rows } = await query(insertUserIntoUserRolesQuery, [
-      userId,
-      roleId
-    ]);
-    return rows[0].user_id === userId;
-  }
+  // async addRoleToUser(userId: number, roleId: number) {
+  //   const addUserRoleQuery =
+  //     'INSERT INTO user_roles(user_id, role_id) VALUES($1, $2) RETURNING *';
+  //   const { rows } = await query(addUserRoleQuery, [userId, roleId]);
+  //   return rows[0].user_id === userId;
+  // }
 
   static async loadUser(userEmail: string) {
     const getQuery = 'SELECT * FROM users where email=$1';

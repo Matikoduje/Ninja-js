@@ -27,8 +27,10 @@ export const addUser = async (
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
     const preparedUser = new User(email, hashedPassword);
-    const createdUserId = await preparedUser.save();
-    res.status(201).json({ message: 'User created!', userId: createdUserId });
+    await preparedUser.save();
+    res
+      .status(201)
+      .json({ message: 'User created! You can login into site now.' });
   } catch (err) {
     const error = appErrorHandler(err);
     next(error);

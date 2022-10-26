@@ -9,11 +9,15 @@ const pool = new Pool({
   connectionString: postgresConnectionString
 });
 
-const query = (text: string, params: any) => {
+export const query = (text: string, params: any) => {
   return pool.query(text, params);
 };
 
-const dbCheck = async () => {
+export const client = async () => {
+  return await pool.connect();
+};
+
+export const dbCheck = async () => {
   try {
     const { rows } = await query('SELECT * FROM users', []);
     return rows.length > 0
@@ -23,6 +27,3 @@ const dbCheck = async () => {
     throw new Error("Can't connect to database");
   }
 };
-
-export { dbCheck, query };
-export default query;
