@@ -26,11 +26,10 @@ const errorRequestHandler: ErrorRequestHandler = (
 ) => {
   const statusCode = err.statusCode || 500;
   const { message } = err;
-  const validationError = err.validationError || '';
   const errorOutput = {
-    message,
-    validationError
+    message
   };
+  logger.error({ err });
   res.status(statusCode).json(errorOutput);
 };
 

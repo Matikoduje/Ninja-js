@@ -4,7 +4,7 @@ import User from '../models/user';
 const isEmailUsed = async (email: string) => {
   const isEmailUsed = await User.isEmailExists(email);
   if (isEmailUsed) {
-    throw new Error('Email is already in used.');
+    throw new Error('Email is already in used. Please provide other email.');
   }
 };
 

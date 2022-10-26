@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import query from '../db/database';
 import { StatusCodeError } from '../handlers/custom-errors';
 import User from '../models/user';
 

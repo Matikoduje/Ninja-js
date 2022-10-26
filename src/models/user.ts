@@ -43,7 +43,7 @@ class User {
       'SELECT COUNT(*)::INT FROM users where email=$1',
       [email]
     );
-    return rows[0] > 0 ? true : false;
+    return rows[0].count > 0 ? true : false;
   }
 }
 
