@@ -1,9 +1,4 @@
-import express, {
-  Request,
-  Response,
-  ErrorRequestHandler,
-  NextFunction
-} from 'express';
+import express from 'express';
 import bodyParser from 'body-parser';
 import config from 'config';
 import versionRoutes from './routes/version';
@@ -11,6 +6,7 @@ import userRoutes from './routes/user';
 import authRoutes from './routes/auth';
 import { dbCheck } from './db/database';
 import logger from './logger/_logger';
+import { appErrorRequestHandler } from './handlers/custom-errors';
 
 const app = express();
 app.use(bodyParser.json());
@@ -18,26 +14,10 @@ app.use(bodyParser.json());
 const port: number = config.get('App.port');
 const host: string = config.get('App.host');
 
-const errorRequestHandler: ErrorRequestHandler = (
-  err: any,
-  req: Request,
-  res: Response,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  next: NextFunction
-) => {
-  const statusCode = err.statusCode || 500;
-  const { message } = err;
-  const errorOutput = {
-    message
-  };
-  logger.error({ err });
-  res.status(statusCode).json(errorOutput);
-};
-
 app.use(versionRoutes);
 app.use(userRoutes);
 app.use(authRoutes);
-app.use(errorRequestHandler);
+app.use(appErrorRequestHandler);
 
 async function startServer() {
   try {

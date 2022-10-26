@@ -1,4 +1,6 @@
+import { Request, Response, ErrorRequestHandler, NextFunction } from 'express';
 import { ValidationError } from 'joi';
+import logger from '../logger/_logger';
 
 export class StatusCodeError extends Error {
   statusCode: number | undefined;
@@ -21,4 +23,20 @@ export const appErrorHandler = (err: any) => {
     errorMessage = err instanceof Error ? err.message : 'DB connection error.';
     return new StatusCodeError(errorMessage, 500);
   }
+};
+
+export const appErrorRequestHandler: ErrorRequestHandler = (
+  err: any,
+  req: Request,
+  res: Response,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  next: NextFunction
+) => {
+  const statusCode = err.statusCode || 500;
+  const { message } = err;
+  const errorOutput = {
+    message
+  };
+  logger.trace({ err });
+  res.status(statusCode).json(errorOutput);
 };
