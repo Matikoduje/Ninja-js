@@ -52,12 +52,10 @@ class User {
     return this.deleted_at !== null;
   }
 
-  // async addRoleToUser(userId: number, roleId: number) {
-  //   const addUserRoleQuery =
-  //     'INSERT INTO user_roles(user_id, role_id) VALUES($1, $2) RETURNING *';
-  //   const { rows } = await query(addUserRoleQuery, [userId, roleId]);
-  //   return rows[0].user_id === userId;
-  // }
+  async setAuthenticationToken(token: string) {
+    const addTokenToUserQuery = 'UPDATE users SET token=$1 WHERE user_id=$2';
+    await query(addTokenToUserQuery, [token, this.id]);
+  }
 
   static async loadUser(usernameToLoad: string) {
     const getQuery = 'SELECT * FROM users where username=$1';
@@ -82,6 +80,58 @@ class User {
         created_at
       };
     });
+  }
+
+  static async isTokenValid(userId: number, token: string) {
+    const { rows } = await query(
+      'SELECT user_id FROM users WHERE user_id=$1 AND token=$2',
+      [userId, token]
+    );
+    return rows.length === 1;
+  }
+
+  static async isUserExists(userId: number) {
+    const { rows } = await query('SELECT user_id FROM users WHERE user_id=$1', [
+      userId
+    ]);
+    return rows.length === 1;
+  }
+
+  static async userLogout(userId: number) {
+    const addTokenToUserQuery =
+      'UPDATE users SET token=$1 WHERE user_id=$2 RETURNING user_id';
+    const { rows } = await query(addTokenToUserQuery, ['', userId]);
+    return rows.length === 1;
+  }
+
+  static async delete(userId: number) {
+    const transactionClient = await client();
+
+    try {
+      await transactionClient.query('BEGIN');
+      const deleteUserQuery =
+        'UPDATE users SET token=$1, deleted_at=NOW() WHERE user_id=$2';
+      await transactionClient.query(deleteUserQuery, ['', userId]);
+      const removeUserRolesQuery = 'DELETE FROM user_roles WHERE user_id=$1';
+      await transactionClient.query(removeUserRolesQuery, [userId]);
+      await transactionClient.query('COMMIT');
+    } catch (err) {
+      await transactionClient.query('ROLLBACK');
+      throw err;
+    } finally {
+      transactionClient.release();
+    }
+  }
+
+  static async getUsernameByUserId(userId: number) {
+    const { rows } = await query(
+      'SELECT username FROM users WHERE user_id=$1',
+      [userId]
+    );
+    if (rows.length === 0) {
+      return null;
+    }
+    return rows[0].username;
   }
 }
 

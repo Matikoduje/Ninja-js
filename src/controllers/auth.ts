@@ -4,7 +4,7 @@ import { StatusCodeError, appErrorHandler } from '../handlers/custom-errors';
 import { generateAccessToken } from '../handlers/json-web-tokens';
 import User from '../models/user';
 
-export const logIn = async (
+export const login = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -33,11 +33,33 @@ export const logIn = async (
       );
     }
     const accessToken = generateAccessToken(user);
+    user.setAuthenticationToken(accessToken);
 
     res.status(200).json({
       message:
-        'Successfully login into site. Please save access token. You should use this token to authorize actions in site.',
-      accessToken
+        'Successfully login into site. Please save access token. You should use this token in header authorization to authorize actions in site.',
+      accessToken,
+      id: user.getId()
+    });
+  } catch (err) {
+    const error = appErrorHandler(err);
+    next(error);
+  }
+};
+
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { requestedUserId } = req;
+  try {
+    const isUserLogout = await User.userLogout(requestedUserId);
+    if (!isUserLogout) {
+      throw new StatusCodeError('Provided token is not valid.', 401);
+    }
+    res.status(200).json({
+      message: 'You have logged out of the site. Please come back!'
     });
   } catch (err) {
     const error = appErrorHandler(err);

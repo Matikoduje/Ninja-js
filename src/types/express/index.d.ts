@@ -1,5 +1,6 @@
 declare namespace Express {
   interface Request {
-    userId?: number;
+    requestedUserId: number;
+    verificationToken: string;
   }
 }

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { appErrorHandler } from '../handlers/custom-errors';
+import { appErrorHandler, StatusCodeError } from '../handlers/custom-errors';
 import User from '../models/user';
 
 export const getUsers = async (
@@ -42,10 +42,18 @@ export const deleteUser = async (
   res: Response,
   next: NextFunction
 ) => {
+  const { requestedUserId } = req;
+
   try {
-    res
-      .status(200)
-      .json({ message: 'User created! You can login into site now.' });
+    await User.delete(requestedUserId);
+    const username = await User.getUsernameByUserId(requestedUserId);
+    const user = await User.loadUser(username);
+    if (!user || !user.isDeleted()) {
+      throw new StatusCodeError("'User can't be deleted.", 409);
+    }
+    res.status(200).json({
+      message: `Successfully deleted user with username: ${username}`
+    });
   } catch (err) {
     const error = appErrorHandler(err);
     next(error);
