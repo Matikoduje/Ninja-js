@@ -1,4 +1,4 @@
-import { query, client } from '../db/database';
+import { query, client, getXmin } from '../db/database';
 import Role from './role';
 import { StatusCodeError } from '../helpers/custom-errors';
 
@@ -14,6 +14,15 @@ class User {
 
   async save() {
     const operation = this.id !== null ? 'update' : 'save';
+    let xmin;
+
+    if (operation === 'update') {
+      try {
+        xmin = await getXmin('users', 'user_id', this.id as number);
+      } catch (err) {
+        throw new StatusCodeError('Failed due to DB problem.', 500);
+      }
+    }
     const transactionClient = await client();
 
     try {
@@ -36,12 +45,13 @@ class User {
         }
         case 'update': {
           const updateUserQuery =
-            'UPDATE users SET password=$1, username=$2, token=$3 WHERE user_id=$4';
+            'UPDATE users SET password=$1, username=$2, token=$3 WHERE user_id=$4 and xmin=$5';
           await transactionClient.query(updateUserQuery, [
             this.password,
             this.username,
             '',
-            this.id
+            this.id,
+            xmin
           ]);
           break;
         }
@@ -77,13 +87,20 @@ class User {
   }
 
   async delete(): Promise<User> {
+    let xmin;
+    try {
+      xmin = await getXmin('users', 'user_id', this.id as number);
+    } catch (err) {
+      throw new StatusCodeError('Failed due to DB problem.', 500);
+    }
+
     const transactionClient = await client();
 
     try {
       await transactionClient.query('BEGIN');
       const deleteUserQuery =
-        'UPDATE users SET token=$1, deleted_at=NOW() WHERE user_id=$2';
-      await transactionClient.query(deleteUserQuery, ['', this.id]);
+        'UPDATE users SET token=$1, deleted_at=NOW() WHERE user_id=$2 and xmin=$3';
+      await transactionClient.query(deleteUserQuery, ['', this.id, xmin]);
       const removeUserRolesQuery = 'DELETE FROM user_roles WHERE user_id=$1';
       await transactionClient.query(removeUserRolesQuery, [this.id]);
       await transactionClient.query('COMMIT');

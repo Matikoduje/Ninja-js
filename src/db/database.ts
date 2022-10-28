@@ -1,5 +1,6 @@
 import { Pool, PoolClient, QueryResult } from 'pg';
 import config from 'config';
+import { StatusCodeError } from '../helpers/custom-errors';
 
 const postgresConnectionString: string = config.get(
   'App.postgresConfiguration.postgresConnectionString'
@@ -26,4 +27,17 @@ export const dbCheck = async (): Promise<string> => {
   } catch (err) {
     throw new Error("Can't connect to database");
   }
+};
+
+export const getXmin = async (
+  tableName: string,
+  primaryKeyColumn: string,
+  recordId: number
+): Promise<number> => {
+  const getXminQuery = `Select xmin from ${tableName} where ${primaryKeyColumn}=$1`;
+  const { rows } = await query(getXminQuery, [recordId]);
+  if (rows.length === 0) {
+    throw new StatusCodeError('Record not found.', 404);
+  }
+  return rows[0].xmin;
 };
