@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { ObjectSchema } from 'joi';
-import { appErrorHandler, StatusCodeError } from '../handlers/custom-errors';
+import { appErrorHandler } from '../helpers/custom-errors';
 import User from '../models/user';
+import RequestHandler from '../helpers/custom-request';
 
 export const validationMiddleware = (schema: ObjectSchema) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -20,14 +21,12 @@ export const validateUserIdFromParams = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { requestedUserId } = req;
+  const userId = RequestHandler.getUserIdFromParams(req);
 
   try {
-    const isUserExists = await User.isUserExists(requestedUserId);
-    if (isUserExists) {
-      return next();
-    }
-    throw new StatusCodeError('User Not Found', 404);
+    const user = await User.loadUserById(userId);
+    req.user = user;
+    return next();
   } catch (err) {
     const error = appErrorHandler(err);
     return next(error);

@@ -6,7 +6,7 @@ import userRoutes from './routes/user';
 import authRoutes from './routes/auth';
 import { dbCheck } from './db/database';
 import logger from './logger/_logger';
-import { appErrorRequestHandler } from './handlers/custom-errors';
+import { appErrorRequestHandler } from './helpers/custom-errors';
 
 const app = express();
 app.use(bodyParser.json());

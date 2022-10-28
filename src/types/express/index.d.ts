@@ -1,6 +1,6 @@
 declare namespace Express {
-  interface Request {
-    requestedUserId: number;
-    verificationToken: string;
+  export interface Request {
+    authenticatedUserId: number;
+    user: import('../../models/user').default;
   }
 }

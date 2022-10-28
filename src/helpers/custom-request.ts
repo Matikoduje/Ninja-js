@@ -1,7 +1,9 @@
 import { Request } from 'express';
 
-export class RequestHandler {
+class RequestHandler {
   static getUserIdFromParams(req: Request): number {
     return parseInt(req.params.userId as string);
   }
 }
+
+export default RequestHandler;

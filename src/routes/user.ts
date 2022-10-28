@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getUsers, addUser, deleteUser } from '../controllers/user';
+import { getUsers, addUser, deleteUser, updateUser } from '../controllers/user';
 import userValidationSchemas from '../validators/user';
 import {
   validationMiddleware,
@@ -7,7 +7,6 @@ import {
 } from '../middleware/validation-middleware';
 import {
   isUserAuthenticated,
-  isUserTokenValid,
   isUserAuthorized
 } from '../middleware/auth-middleware';
 
@@ -22,10 +21,17 @@ router.post(
 router.delete(
   '/users/:userId',
   isUserAuthenticated,
-  isUserTokenValid,
   isUserAuthorized,
   validateUserIdFromParams,
   deleteUser
+);
+router.patch(
+  '/users/:userId',
+  isUserAuthenticated,
+  isUserAuthorized,
+  validateUserIdFromParams,
+  validationMiddleware(userValidationSchemas.update),
+  updateUser
 );
 
 export default router;

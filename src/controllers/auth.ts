@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { StatusCodeError, appErrorHandler } from '../handlers/custom-errors';
-import { generateAccessToken } from '../handlers/json-web-tokens';
+import { StatusCodeError, appErrorHandler } from '../helpers/custom-errors';
+import generateAccessToken from '../helpers/json-web-tokens';
 import User from '../models/user';
 
 export const login = async (
@@ -52,9 +52,9 @@ export const logout = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { requestedUserId } = req;
+  const { authenticatedUserId } = req;
   try {
-    const isUserLogout = await User.userLogout(requestedUserId);
+    const isUserLogout = await User.userLogout(authenticatedUserId);
     if (!isUserLogout) {
       throw new StatusCodeError('Provided token is not valid.', 401);
     }

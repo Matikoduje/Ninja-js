@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { Pool, PoolClient, QueryResult } from 'pg';
 import config from 'config';
 
 const postgresConnectionString: string = config.get(
@@ -9,15 +9,15 @@ const pool = new Pool({
   connectionString: postgresConnectionString
 });
 
-export const query = (text: string, params: any) => {
+export const query = (text: string, params: any): Promise<QueryResult<any>> => {
   return pool.query(text, params);
 };
 
-export const client = async () => {
+export const client = async (): Promise<PoolClient> => {
   return await pool.connect();
 };
 
-export const dbCheck = async () => {
+export const dbCheck = async (): Promise<string> => {
   try {
     const { rows } = await query('SELECT * FROM users', []);
     return rows.length > 0

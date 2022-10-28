@@ -2,14 +2,14 @@ import { Request, Response, ErrorRequestHandler, NextFunction } from 'express';
 import { ValidationError } from 'joi';
 
 export class StatusCodeError extends Error {
-  statusCode: number | undefined;
+  statusCode: number;
   constructor(message: string, statusCode: number) {
     super(message);
     this.statusCode = statusCode;
   }
 }
 
-export const appErrorHandler = (err: any) => {
+export const appErrorHandler = (err: any): StatusCodeError => {
   if (err instanceof StatusCodeError) {
     return err;
   }
@@ -25,13 +25,13 @@ export const appErrorHandler = (err: any) => {
 };
 
 export const appErrorRequestHandler: ErrorRequestHandler = (
-  err: any,
+  err: Error,
   req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction
 ) => {
-  const statusCode = err.statusCode || 500;
+  const statusCode = err instanceof StatusCodeError ? err.statusCode : 500;
   const { message } = err;
   const errorOutput = {
     message
