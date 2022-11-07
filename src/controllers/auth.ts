@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { StatusCodeError, appErrorHandler } from '../handlers/error-handler';
 import generateAccessToken from '../helpers/jswt-generate';
 import User from '../models/user';
+import UserToken from '../models/userToken';
 
 export const login = async (
   req: Request,
@@ -14,6 +15,13 @@ export const login = async (
   try {
     const user = await User.loadUser(username);
     if (!user) {
+      throw new StatusCodeError(
+        'Invalid credentials. Invalid username or password.',
+        401
+      );
+    }
+    const userId = user.getId();
+    if (userId === null) {
       throw new StatusCodeError(
         'Invalid credentials. Invalid username or password.',
         401
@@ -33,13 +41,13 @@ export const login = async (
       );
     }
     const accessToken = generateAccessToken(user);
-    user.saveAuthenticationToken(accessToken);
+    await UserToken.saveUserToken(userId, accessToken, null);
 
     res.status(200).json({
       message:
         'Successfully login into site. Please save access token. You must set this token in authorization header to authorize actions in site. Format: Bearer AccessTokenValue',
       accessToken,
-      id: user.getId()
+      id: userId
     });
   } catch (err) {
     const error = appErrorHandler(err);

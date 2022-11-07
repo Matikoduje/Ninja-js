@@ -1,5 +1,6 @@
 import { query, client } from '../db/database';
 import Role from './role';
+import UserToken from './userToken';
 import { StatusCodeError } from '../handlers/error-handler';
 
 class User {
@@ -9,7 +10,7 @@ class User {
     private id: number | null = null,
     private created_at: Date | null = null,
     private deleted_at: Date | null = null,
-    private ETag: string = ''
+    private etag: string = ''
   ) {}
 
   async save() {
@@ -29,22 +30,24 @@ class User {
             this.username
           ]);
           const userId = rows[0].user_id;
-          const roleUserId = await Role.getRoleIdByName('user');
-          const addUserRoleQuery =
-            'INSERT INTO user_roles(user_id, role_id) VALUES($1, $2)';
-          await transactionClient.query(addUserRoleQuery, [userId, roleUserId]);
+          await UserToken.initializeToken(transactionClient, userId);
+          await Role.addRoleToUser(transactionClient, userId, 'user');
           break;
         }
         case 'update': {
           const updateUserQuery =
-            'UPDATE users SET password=$1, username=$2, token=$3 WHERE user_id=$4 and xmin=$5';
+            'UPDATE users SET password=$1, username=$2 WHERE user_id=$3 and xmin=$4';
           await transactionClient.query(updateUserQuery, [
             this.password,
             this.username,
-            '',
             this.id,
-            this.ETag
+            this.etag
           ]);
+          await UserToken.saveUserToken(
+            this.id as number,
+            '',
+            transactionClient
+          );
           break;
         }
       }
@@ -69,7 +72,7 @@ class User {
     return this.id;
   }
 
-  getCreatedAt() {
+  getCreatedAt(): Date | null {
     return this.created_at;
   }
 
@@ -77,13 +80,12 @@ class User {
     return this.deleted_at === null ? 'active' : 'deleted';
   }
 
-  isDeleted(): boolean {
-    return this.deleted_at !== null;
+  getEtag(): string {
+    return this.etag;
   }
 
-  async saveAuthenticationToken(token: string) {
-    const addTokenToUserQuery = 'UPDATE users SET token=$1 WHERE user_id=$2';
-    await query(addTokenToUserQuery, [token, this.id]);
+  isDeleted(): boolean {
+    return this.deleted_at !== null;
   }
 
   async delete(): Promise<User> {
@@ -93,9 +95,9 @@ class User {
       await transactionClient.query('BEGIN');
       const deleteUserQuery =
         'UPDATE users SET token=$1, deleted_at=NOW() WHERE user_id=$2 and xmin=$3';
-      await transactionClient.query(deleteUserQuery, ['', this.id, this.ETag]);
-      const removeUserRolesQuery = 'DELETE FROM user_roles WHERE user_id=$1';
-      await transactionClient.query(removeUserRolesQuery, [this.id]);
+      await transactionClient.query(deleteUserQuery, ['', this.id, this.etag]);
+      await UserToken.saveUserToken(this.id as number, '', transactionClient);
+      await Role.removeUserRoles(this.id as number, transactionClient);
       await transactionClient.query('COMMIT');
     } catch (err) {
       await transactionClient.query('ROLLBACK');
@@ -106,30 +108,15 @@ class User {
     return User.loadUser(this.username);
   }
 
-  async generateETag(): Promise<string> {
-    const getEtagQuery = 'SELECT xmin AS etag FROM users where user_id=$1';
-    const { rows } = await query(getEtagQuery, [this.id]);
-    return rows[0].etag;
-  }
-
-  async checkETag(ETagToCheck: string): Promise<boolean> {
-    const Etag = await this.generateETag();
-    return ETagToCheck === Etag;
-  }
-
-  setETag(ETag: string) {
-    this.ETag = ETag;
-  }
-
   static async loadUser(usernameToLoad: string) {
-    const getQuery = 'SELECT * FROM users where username=$1';
+    const getQuery = 'SELECT *, xmin as etag FROM users where username=$1';
     const { rows } = await query(getQuery, [usernameToLoad]);
     if (rows.length === 0) {
       throw new Error('');
     }
-    const { user_id, username, password, created_at, deleted_at, token } =
+    const { user_id, username, password, created_at, deleted_at, etag } =
       rows[0];
-    return new User(username, password, user_id, created_at, deleted_at, token);
+    return new User(username, password, user_id, created_at, deleted_at, etag);
   }
 
   static async getUsers() {
@@ -142,16 +129,6 @@ class User {
         active: deleted_at === null ? 'active' : 'deleted'
       };
     });
-  }
-
-  static async isTokenValid(userId: number, token: string) {
-    const { rows } = await query(
-      'SELECT user_id FROM users WHERE user_id=$1 AND token=$2',
-      [userId, token]
-    );
-    if (rows.length === 0) {
-      throw new StatusCodeError('Provided token is not valid.', 401);
-    }
   }
 
   static async isUsernameUnique(username: string): Promise<boolean> {

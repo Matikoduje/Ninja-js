@@ -4,7 +4,7 @@
     "logLevel": "info",
     "jsonWebTokensConfiguration": {
       "accessTokenSecret": "TEST2VZ8weqW2weqOC5sdaLYMoDxCVUEer34weErqPjWpMKb614",
-      "expiresIn": "20s"
+      "expiresIn": "2s"
     }
   }
 }

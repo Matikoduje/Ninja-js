@@ -4,6 +4,7 @@ import { StatusCodeError, appErrorHandler } from '../handlers/error-handler';
 import config from 'config';
 import User from '../models/user';
 import Role from '../models/role';
+import UserToken from '../models/userToken';
 import RequestHandler from '../handlers/request-handler';
 
 const accessTokenSecret: string = config.get(
@@ -44,7 +45,7 @@ export const isUserAuthenticated = async (
         401
       );
     }
-    await User.isTokenValid(id, token);
+    await UserToken.isTokenValid(id, token);
     req.authenticatedUserId = id;
     return next();
   } catch (err) {

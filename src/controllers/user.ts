@@ -34,10 +34,10 @@ export const getUser = async (
     if (!userId) {
       throw new StatusCodeError('User Not Found', 404);
     }
-    const ETag = await user.generateETag();
+    const etag = user.getEtag();
     res
       .status(200)
-      .set('ETag', ETag.toString())
+      .set('ETag', etag)
       .json({
         user: {
           id: user.getId(),
