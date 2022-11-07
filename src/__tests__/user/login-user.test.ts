@@ -37,9 +37,5 @@ describe('Tests to check user can login and logout. POST /auth path and GET /log
     expect(response.type).toEqual('application/json');
     expect(accessToken).toBeDefined;
     expect(typeof accessToken).toBe('string');
-    await request(app)
-      .get('/logout')
-      .set('authorization', `Bearer ${accessToken}`)
-      .expect(200);
   });
 });

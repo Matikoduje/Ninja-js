@@ -46,23 +46,3 @@ export const login = async (
     next(error);
   }
 };
-
-export const logout = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { authenticatedUserId } = req;
-  try {
-    const isUserLogout = await User.userLogout(authenticatedUserId);
-    if (!isUserLogout) {
-      throw new StatusCodeError('Provided token is not valid.', 401);
-    }
-    res.status(200).json({
-      message: 'You have logged out of the site. Please come back!'
-    });
-  } catch (err) {
-    const error = appErrorHandler(err);
-    next(error);
-  }
-};
