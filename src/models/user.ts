@@ -94,8 +94,8 @@ class User {
     try {
       await transactionClient.query('BEGIN');
       const deleteUserQuery =
-        'UPDATE users SET token=$1, deleted_at=NOW() WHERE user_id=$2 and xmin=$3';
-      await transactionClient.query(deleteUserQuery, ['', this.id, this.etag]);
+        'UPDATE users SET deleted_at=NOW() WHERE user_id=$1 and xmin=$2';
+      await transactionClient.query(deleteUserQuery, [this.id, this.etag]);
       await UserToken.saveUserToken(this.id as number, '', transactionClient);
       await Role.removeUserRoles(this.id as number, transactionClient);
       await transactionClient.query('COMMIT');

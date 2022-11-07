@@ -1,9 +1,9 @@
-import { describe, expect, it, beforeAll } from '@jest/globals';
+import { describe, expect, it, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
-import app from '../settings/variables';
+import app, { cleanUpTestUser } from '../settings/environment';
 import '../../types/express/index.d.ts';
 
-describe('Tests to check authentication process. If user can login into site, provide action which needs authorization and verify error cases.', () => {
+describe('Tests to verify authentication process.', () => {
   let user = {
     username: '',
     password: '',
@@ -13,16 +13,28 @@ describe('Tests to check authentication process. If user can login into site, pr
   let token;
   let userId;
 
+  /** Create user for this test group. */
   beforeAll(async () => {
     user = {
-      username: `test-${Date.now()}@mail.com`,
+      username: `test-auth-${Date.now()}@mail.com`,
       password: 'password',
       confirm_password: 'password'
     };
     await request(app).post('/users').send(user);
   });
 
-  it('User should NOT log into site when wrong credentials was provided.', async () => {
+  /** After tests delete user used in this test file. */
+  afterAll(async () => {
+    try {
+      await cleanUpTestUser(user.username);
+    } catch (err) {
+      throw new Error(
+        `User ${user.username} can't be clean up after tests. YOU SHOULD verify authorization test.`
+      );
+    }
+  });
+
+  it('User should NOT LOGIN into site with INVALID credentials. Expect STATUS 401.', async () => {
     await request(app)
       .post('/auth')
       .send({ username: user.username, password: 'wrong_password' })
@@ -30,7 +42,7 @@ describe('Tests to check authentication process. If user can login into site, pr
       .expect('Content-Type', /application\/json/);
   });
 
-  it('User should log into site after provide correct credentials and should get Access Token in response.', async () => {
+  it('User should LOGIN into site with VALID credentials. Response SHOULD HAVE ACCESS TOKEN and ID in body. Expect STATUS 200.', async () => {
     const { username, password } = user;
     const response = await request(app)
       .post('/auth')
@@ -44,7 +56,7 @@ describe('Tests to check authentication process. If user can login into site, pr
     expect(typeof accessToken).toBe('string');
   });
 
-  it('Logged user should provide action restricted to authenticated user when set authorization header with valid token value.', async () => {
+  it('User should BE ABLE to do any action that requires authentication when provide VALID TOKEN in AUTHORIZATION header. Expect STATUS 200.', async () => {
     await request(app)
       .get(`/users/${userId}`)
       .set('Authorization', `Bearer ${token}`)
@@ -52,14 +64,14 @@ describe('Tests to check authentication process. If user can login into site, pr
       .expect('Content-Type', /application\/json/);
   });
 
-  it('User should NOT do any action related with authentication when authorization header is not set.', async () => {
+  it('User should NOT BE ABLE to do any action that requires authentication when AUTHORIZATION header is NOT SET. Expect STATUS 401.', async () => {
     await request(app)
       .get(`/users/${userId}`)
       .expect(401)
       .expect('Content-Type', /application\/json/);
   });
 
-  it('User using wrong token should NOT perform any action requiring authorization.', async () => {
+  it('User should NOT BE ABLE to do any action that requires authentication when provide INVALID TOKEN in AUTHORIZATION header. Expect STATUS 401.', async () => {
     await request(app)
       .get(`/users/${userId}`)
       .set('Authorization', `Bearer thisIsNotValidToken`)
@@ -67,8 +79,8 @@ describe('Tests to check authentication process. If user can login into site, pr
       .expect('Content-Type', /application\/json/);
   });
 
-  it('After token expiration time passed user should NOT perform any action requiring authorization.', async () => {
-    // Token expiration time for test ENV is set to 2s.
+  it('User should NOT BE ABLE to do any action that requires authentication when TOKEN is expired. Expect STATUS 401.', async () => {
+    // If the token does not expire within this time, check the expiresIn time for the test environment. Should be 2s.
     await new Promise((t) => setTimeout(t, 2000));
 
     await request(app)

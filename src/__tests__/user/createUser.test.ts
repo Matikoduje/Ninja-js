@@ -1,35 +1,47 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, afterAll } from '@jest/globals';
 import request from 'supertest';
-import app from '../settings/variables';
+import app, { cleanUpTestUser } from '../settings/environment';
 import '../../types/express/index.d.ts';
 
-describe('Tests to check whether a user can create account. POST /users path.', () => {
-  const testUser = {
-    username: `test-${Date.now()}@mail.com`,
+describe('Tests to check create user account process.', () => {
+  const user = {
+    username: `test-create-user-${Date.now()}@mail.com`,
     password: 'password',
     confirm_password: 'password'
   };
 
-  it('User should NOT create account when provided invalid email.', async () => {
-    const user = { ...testUser };
-    user.username = 'invalid-email';
+  /** After tests delete user used in this test file. */
+  afterAll(async () => {
+    try {
+      await cleanUpTestUser(user.username);
+    } catch (err) {
+      throw new Error(
+        `User ${user.username} can't be clean up after tests. YOU SHOULD verify createUser tests.`
+      );
+    }
+  });
+
+  it('User should NOT CREATE account with invalid email. Expect STATUS 422.', async () => {
+    const testUser = { ...user };
+    testUser.username = 'invalid-email';
     await request(app)
       .post('/users')
-      .send(user)
+      .send(testUser)
       .expect(422)
       .expect('Content-Type', /application\/json/);
   });
-  it('User should NOT create account when provided password and confirm_password were different.', async () => {
-    const user = { ...testUser };
-    user.confirm_password = 'passwords-not-match';
+
+  it('User should NOT CREATE account when password and password match are not the same. Expect STATUS 422.', async () => {
+    const testUser = { ...user };
+    testUser.confirm_password = 'passwords-not-match';
     await request(app)
       .post('/users')
-      .send(user)
+      .send(testUser)
       .expect(422)
       .expect('Content-Type', /application\/json/);
   });
-  it('User should create account when provide valid data.', async () => {
-    const user = { ...testUser };
+
+  it('User should CREATE account with properly set params. Expect STATUS 201. After that GET /users SHOULD returns created user account in users array.', async () => {
     await request(app)
       .post('/users')
       .send(user)

@@ -2,11 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { appErrorHandler, StatusCodeError } from '../handlers/error-handler';
 import User from '../models/user';
-import { applyPatch, Operation } from 'fast-json-patch';
-import {
-  isUpdateOperation,
-  UpdateOperation
-} from '../handlers/patch-user-handler';
+import { applyPatch } from 'fast-json-patch';
+import { UpdateOperation } from '../handlers/patch-user-handler';
 
 export const getUsers = async (
   req: Request,
@@ -112,7 +109,7 @@ export const updateUser = async (
       (element) => element !== undefined
     );
     applyPatch(user, filteredPatch);
-    user.save();
+    await user.save();
     res.status(200).json({
       message: `User data was changed. Current token for user was deleted. Please login again into account.`
     });

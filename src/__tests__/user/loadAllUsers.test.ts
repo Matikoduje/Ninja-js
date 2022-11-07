@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 import request from 'supertest';
-import app from '../settings/variables';
+import app from '../settings/environment';
 import '../../types/express/index.d.ts';
 
-describe('Test GET /users route.', () => {
+describe('Test to verify GET /users route', () => {
   it('Response should return all users.', async () => {
     const response = await request(app).get('/users');
     const { users } = response.body;

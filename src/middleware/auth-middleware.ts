@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { StatusCodeError, appErrorHandler } from '../handlers/error-handler';
 import config from 'config';
-import User from '../models/user';
 import Role from '../models/role';
 import UserToken from '../models/userToken';
 import RequestHandler from '../handlers/request-handler';

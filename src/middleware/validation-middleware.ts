@@ -89,25 +89,31 @@ export const validateETag = async (
   next: NextFunction
 ) => {
   let etag;
-  if (req.headers['if-match']) {
-    etag = req.headers['if-match'];
-  }
-  if (!etag) {
-    throw new StatusCodeError(
-      'A required header if-match is missing. In if-match header you should set etag value.',
-      400
-    );
-  }
 
-  const { user } = req;
-  const userEtag = user.getEtag();
-  if (userEtag !== etag) {
-    throw new StatusCodeError(
-      'The attached Etag does not reflect the current state of the user. The action will not be performed.',
-      412
-    );
+  try {
+    if (req.headers['if-match']) {
+      etag = req.headers['if-match'];
+    }
+    if (!etag) {
+      throw new StatusCodeError(
+        'A required header if-match is missing. In if-match header you should set etag value.',
+        400
+      );
+    }
+
+    const { user } = req;
+    const userEtag = user.getEtag();
+    if (userEtag !== etag) {
+      throw new StatusCodeError(
+        'The attached Etag does not reflect the current state of the user. The action will not be performed.',
+        412
+      );
+    }
+    next();
+  } catch (err) {
+    const error = appErrorHandler(err);
+    return next(error);
   }
-  next();
 };
 
 export default validationMiddleware;
