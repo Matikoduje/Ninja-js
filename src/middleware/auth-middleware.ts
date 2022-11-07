@@ -1,17 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { StatusCodeError, appErrorHandler } from '../helpers/custom-errors';
+import { StatusCodeError, appErrorHandler } from '../handlers/error-handler';
 import config from 'config';
 import User from '../models/user';
 import Role from '../models/role';
-import RequestHandler from '../helpers/custom-request';
+import RequestHandler from '../handlers/request-handler';
 
 const accessTokenSecret: string = config.get(
   'App.jsonWebTokensConfiguration.accessTokenSecret'
-);
-
-const requestTokenHeader: string = config.get(
-  'App.jsonWebTokensConfiguration.header'
 );
 
 export const isUserAuthenticated = async (
@@ -20,15 +16,16 @@ export const isUserAuthenticated = async (
   next: NextFunction
 ) => {
   try {
-    const token = req.header(requestTokenHeader);
-
+    let token;
+    if (req.headers.authorization) {
+      token = req.headers.authorization.split(' ')[1];
+    }
     if (!token) {
       throw new StatusCodeError(
-        `Required ${requestTokenHeader} header not found.`,
+        `Required authorization header not found.`,
         401
       );
     }
-
     jwt.verify(token, accessTokenSecret, (err) => {
       if (err) {
         throw new StatusCodeError(

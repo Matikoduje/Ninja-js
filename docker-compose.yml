@@ -14,11 +14,25 @@ services:
     environment:
       - POSTGRES_CONNECTION_STRING=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
     volumes:
-      # Maps our current project directory `.` to
-      # our working directory in the container
       - ./:/app/
-      # node_modules workaround for volumes
-      # https://stackoverflow.com/a/32785014
+      - /app/node_modules
+  #================================= TEST =============================================
+  app-test:
+    build:
+      context: .
+      target: test
+    command: sh -c './docker-scripts/wait-for postgres:${POSTGRES_PORT} -- npm test'
+    depends_on:
+      - 'postgres'
+    ports:
+      - '8040:8040'
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_CONNECTION_STRING=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+      - NODE_ENV=test
+    volumes:
+      - ./:/app/
       - /app/node_modules
   #================================= PRODUCTION =============================================
   app-prod:
@@ -34,6 +48,7 @@ services:
       - ./.env
     environment:
       - POSTGRES_CONNECTION_STRING=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+      - NODE_ENV=production
   #================================= POSTGRES DB =============================================
   postgres:
     container_name: pg_container

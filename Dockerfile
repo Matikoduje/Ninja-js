@@ -32,6 +32,15 @@ RUN npm run build
 
 EXPOSE 8000
 CMD [ "npm", "run", "serve" ]
+#=================================================== TEST =====================================================================
+FROM base AS test
+WORKDIR /app
+USER app
+
+RUN npm install
+RUN chmod 777 ./docker-scripts -R
+
+EXPOSE 8040
 #=================================================== PRODUCTION ===============================================================
 FROM base AS production
 WORKDIR /app

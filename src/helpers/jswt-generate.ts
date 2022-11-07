@@ -6,6 +6,10 @@ const accessTokenSecret: string = config.get(
   'App.jsonWebTokensConfiguration.accessTokenSecret'
 );
 
+const expiresIn: string = config.get(
+  'App.jsonWebTokensConfiguration.expiresIn'
+);
+
 const generateAccessToken = (user: User): string => {
   return jwt.sign(
     {
@@ -13,7 +17,7 @@ const generateAccessToken = (user: User): string => {
       id: user.getId()
     },
     accessTokenSecret,
-    { expiresIn: '15m' }
+    { expiresIn }
   );
 };
 

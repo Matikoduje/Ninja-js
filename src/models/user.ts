@@ -1,6 +1,6 @@
-import { query, client, getXmin } from '../db/database';
+import { query, client } from '../db/database';
 import Role from './role';
-import { StatusCodeError } from '../helpers/custom-errors';
+import { StatusCodeError } from '../handlers/error-handler';
 
 class User {
   constructor(
@@ -9,20 +9,12 @@ class User {
     private id: number | null = null,
     private created_at: Date | null = null,
     private deleted_at: Date | null = null,
-    private token: string = ''
+    private ETag: string = ''
   ) {}
 
   async save() {
     const operation = this.id !== null ? 'update' : 'save';
-    let xmin;
 
-    if (operation === 'update') {
-      try {
-        xmin = await getXmin('users', 'user_id', this.id as number);
-      } catch (err) {
-        throw new StatusCodeError('Failed due to DB problem.', 500);
-      }
-    }
     const transactionClient = await client();
 
     try {
@@ -51,7 +43,7 @@ class User {
             this.username,
             '',
             this.id,
-            xmin
+            this.ETag
           ]);
           break;
         }
@@ -65,7 +57,7 @@ class User {
     }
   }
 
-  getPassword() {
+  getPassword(): string {
     return this.password;
   }
 
@@ -73,34 +65,35 @@ class User {
     return this.username;
   }
 
-  getId() {
+  getId(): number | null {
     return this.id;
   }
 
-  isDeleted() {
+  getCreatedAt() {
+    return this.created_at;
+  }
+
+  getUserStatus(): string {
+    return this.deleted_at === null ? 'active' : 'deleted';
+  }
+
+  isDeleted(): boolean {
     return this.deleted_at !== null;
   }
 
-  async setAuthenticationToken(token: string) {
+  async saveAuthenticationToken(token: string) {
     const addTokenToUserQuery = 'UPDATE users SET token=$1 WHERE user_id=$2';
     await query(addTokenToUserQuery, [token, this.id]);
   }
 
   async delete(): Promise<User> {
-    let xmin;
-    try {
-      xmin = await getXmin('users', 'user_id', this.id as number);
-    } catch (err) {
-      throw new StatusCodeError('Failed due to DB problem.', 500);
-    }
-
     const transactionClient = await client();
 
     try {
       await transactionClient.query('BEGIN');
       const deleteUserQuery =
         'UPDATE users SET token=$1, deleted_at=NOW() WHERE user_id=$2 and xmin=$3';
-      await transactionClient.query(deleteUserQuery, ['', this.id, xmin]);
+      await transactionClient.query(deleteUserQuery, ['', this.id, this.ETag]);
       const removeUserRolesQuery = 'DELETE FROM user_roles WHERE user_id=$1';
       await transactionClient.query(removeUserRolesQuery, [this.id]);
       await transactionClient.query('COMMIT');
@@ -113,11 +106,26 @@ class User {
     return User.loadUser(this.username);
   }
 
+  async generateETag(): Promise<string> {
+    const getEtagQuery = 'SELECT xmin AS etag FROM users where user_id=$1';
+    const { rows } = await query(getEtagQuery, [this.id]);
+    return rows[0].etag;
+  }
+
+  async checkETag(ETagToCheck: string): Promise<boolean> {
+    const Etag = await this.generateETag();
+    return ETagToCheck === Etag;
+  }
+
+  setETag(ETag: string) {
+    this.ETag = ETag;
+  }
+
   static async loadUser(usernameToLoad: string) {
     const getQuery = 'SELECT * FROM users where username=$1';
     const { rows } = await query(getQuery, [usernameToLoad]);
     if (rows.length === 0) {
-      throw new StatusCodeError('User Not Found', 404);
+      throw new Error('');
     }
     const { user_id, username, password, created_at, deleted_at, token } =
       rows[0];
@@ -125,15 +133,13 @@ class User {
   }
 
   static async getUsers() {
-    const { rows } = await query(
-      'SELECT * FROM users where deleted_at IS NULL',
-      []
-    );
-    return rows.map(({ user_id, username, created_at }) => {
+    const { rows } = await query('SELECT * FROM users', []);
+    return rows.map(({ user_id, username, created_at, deleted_at }) => {
       return {
         id: user_id,
         username,
-        created_at
+        created_at,
+        active: deleted_at === null ? 'active' : 'deleted'
       };
     });
   }

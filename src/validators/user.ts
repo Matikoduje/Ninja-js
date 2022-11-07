@@ -1,6 +1,6 @@
 import Joi from 'joi';
 import User from '../models/user';
-import { StatusCodeError } from '../helpers/custom-errors';
+import { StatusCodeError } from '../handlers/error-handler';
 
 const isUsernameUsed = async (username: string) => {
   const isUnique = await User.isUsernameUnique(username);
@@ -51,7 +51,6 @@ const userValidationSchemas = {
     password: passwordValidation.required()
   }),
   update: Joi.object({
-    // username: usernameValidation,
     username: usernameValidation.external(isUsernameUsed),
     password: passwordValidation,
     confirm_password: confirmPasswordValidation

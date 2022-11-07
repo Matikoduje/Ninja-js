@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { StatusCodeError, appErrorHandler } from '../helpers/custom-errors';
-import generateAccessToken from '../helpers/json-web-tokens';
+import { StatusCodeError, appErrorHandler } from '../handlers/error-handler';
+import generateAccessToken from '../helpers/jswt-generate';
 import User from '../models/user';
 
 export const login = async (
@@ -33,11 +33,11 @@ export const login = async (
       );
     }
     const accessToken = generateAccessToken(user);
-    user.setAuthenticationToken(accessToken);
+    user.saveAuthenticationToken(accessToken);
 
     res.status(200).json({
       message:
-        'Successfully login into site. Please save access token. You should use this token in header authorization to authorize actions in site.',
+        'Successfully login into site. Please save access token. You must set this token in authorization header to authorize actions in site. Format: Bearer AccessTokenValue',
       accessToken,
       id: user.getId()
     });

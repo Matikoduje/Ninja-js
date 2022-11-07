@@ -12,6 +12,7 @@
     "skipLibCheck": true,
     "typeRoots": ["./types"]
   },
+  "exclude": ["__tests__"],
   "references": [
     {
       "path": "../"

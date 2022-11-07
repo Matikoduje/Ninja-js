@@ -1,9 +1,18 @@
 import { Router } from 'express';
-import { getUsers, addUser, deleteUser, updateUser } from '../controllers/user';
+import {
+  getUsers,
+  addUser,
+  deleteUser,
+  updateUser,
+  getUser
+} from '../controllers/user';
 import userValidationSchemas from '../validators/user';
 import {
   validationMiddleware,
-  validateUserIdFromParams
+  validationUpdateMiddleware,
+  validateUserIdFromParams,
+  validateETag,
+  validateJSONPatchForUpdateUser
 } from '../middleware/validation-middleware';
 import {
   isUserAuthenticated,
@@ -12,25 +21,38 @@ import {
 
 const router = Router();
 
+router.get(
+  '/users/:userId',
+  isUserAuthenticated,
+  isUserAuthorized,
+  validateUserIdFromParams,
+  getUser
+);
 router.get('/users', getUsers);
+
 router.post(
   '/users',
   validationMiddleware(userValidationSchemas.accountCreation),
   addUser
 );
+
 router.delete(
   '/users/:userId',
   isUserAuthenticated,
   isUserAuthorized,
   validateUserIdFromParams,
+  validateETag,
   deleteUser
 );
+
 router.patch(
   '/users/:userId',
   isUserAuthenticated,
   isUserAuthorized,
   validateUserIdFromParams,
-  validationMiddleware(userValidationSchemas.update),
+  validateJSONPatchForUpdateUser,
+  validateETag,
+  validationUpdateMiddleware(userValidationSchemas.update),
   updateUser
 );
 
