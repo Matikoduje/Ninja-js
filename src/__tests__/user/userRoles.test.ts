@@ -114,7 +114,7 @@ describe('Tests to verify user have properly set roles related with actions.', (
       .expect('Content-Type', /application\/json/);
   });
 
-  it('User with ADMIN role SHOULD do any action related to other accounts. Expect STATUS 422.', async () => {
+  it('User with ADMIN role SHOULD do any action related to other accounts. Expect STATUS 200.', async () => {
     const getUserResponse = await request(app)
       .get(`/users/1`)
       .set('Authorization', `Bearer ${token}`);
