@@ -13,7 +13,7 @@ APP routes:
 - GET /version - get information about repo. NO AUTH required.
 - GET /users - get all existing users in DB with basic information. NO AUTH required.
 - POST /users - create new User. In request body should be provided params: username, password, confirm_password. Username should be a valid email address. NO AUTH required.
-- POST /auth - create Access Token for requested user. This token was send in response body param "AccessToken".
+- POST /auth - create Access Token for requested user. In request body should be provided params: username, password. This token was send in response body param "AccessToken".
 
 APP AUTH routes:
 
