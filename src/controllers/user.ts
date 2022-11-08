@@ -4,7 +4,6 @@ import { appErrorHandler, StatusCodeError } from '../handlers/error-handler';
 import User from '../models/user';
 import { applyPatch } from 'fast-json-patch';
 import { UpdateOperation } from '../handlers/patch-user-handler';
-import Role from '../models/role';
 
 export const getUsers = async (
   req: Request,

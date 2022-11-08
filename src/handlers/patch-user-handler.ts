@@ -1,5 +1,4 @@
 import { StatusCodeError } from './error-handler';
-import Role from '../models/role';
 
 export type UpdateOperation = {
   op: 'replace';
