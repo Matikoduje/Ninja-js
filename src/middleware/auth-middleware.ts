@@ -62,15 +62,18 @@ export const isUserAuthorized = async (
   const userId = RequestHandler.getUserIdFromParams(req);
 
   try {
-    const adminRoleId = await Role.getRoleIdByName('admin');
-    const userRoleId = await Role.getRoleIdByName('user');
-
-    const isAdmin = await Role.hasUserRole(authenticatedUserId, adminRoleId);
+    const isAdmin = await Role.hasUserRole(
+      authenticatedUserId,
+      Role.ADMIN_ROLE_ID
+    );
     if (isAdmin) {
       return next();
     }
 
-    const isUser = await Role.hasUserRole(authenticatedUserId, userRoleId);
+    const isUser = await Role.hasUserRole(
+      authenticatedUserId,
+      Role.USER_ROLE_ID
+    );
     if (isUser && userId === authenticatedUserId) {
       return next();
     }

@@ -4,6 +4,7 @@ import { appErrorHandler, StatusCodeError } from '../handlers/error-handler';
 import User from '../models/user';
 import { applyPatch } from 'fast-json-patch';
 import { UpdateOperation } from '../handlers/patch-user-handler';
+import Role from '../models/role';
 
 export const getUsers = async (
   req: Request,
@@ -40,7 +41,8 @@ export const getUser = async (
           id: user.getId(),
           username: user.getUsername(),
           created_at: user.getCreatedAt(),
-          active: user.getUserStatus()
+          active: user.getUserStatus(),
+          roles: user.getUserRoles()
         }
       });
   } catch (err) {
@@ -80,27 +82,29 @@ export const updateUser = async (
   try {
     const preparedPatchWithHashedPassword = await Promise.all(
       patch.map(async (operation: UpdateOperation) => {
-        if (operation.path !== '/password') {
-          return operation;
-        }
-        if (operation.path === '/password') {
-          const modifiedOperation = { ...operation };
-          const isPasswordMatch = await bcrypt.compare(
-            operation.value,
-            user.getPassword()
-          );
-          if (isPasswordMatch) {
-            throw new StatusCodeError(
-              'You cannot change the password to the same one you already have.',
-              422
+        switch (operation.path) {
+          case '/password': {
+            const modifiedOperation = { ...operation };
+            const isPasswordMatch = await bcrypt.compare(
+              operation.value,
+              user.getPassword()
             );
+            if (isPasswordMatch) {
+              throw new StatusCodeError(
+                'You cannot change the password to the same one you already have.',
+                422
+              );
+            }
+            if (!isPasswordMatch) {
+              const hashedPassword = await bcrypt.hash(operation.value, 12);
+              modifiedOperation.value = hashedPassword;
+              return modifiedOperation;
+            } else {
+              return;
+            }
           }
-          if (!isPasswordMatch) {
-            const hashedPassword = await bcrypt.hash(operation.value, 12);
-            modifiedOperation.value = hashedPassword;
-            return modifiedOperation;
-          } else {
-            return;
+          default: {
+            return operation;
           }
         }
       })

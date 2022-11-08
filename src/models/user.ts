@@ -10,7 +10,8 @@ class User {
     private id: number | null = null,
     private created_at: Date | null = null,
     private deleted_at: Date | null = null,
-    private etag: string = ''
+    private etag: string = '',
+    private roles: string[] = []
   ) {}
 
   async save() {
@@ -31,7 +32,11 @@ class User {
           ]);
           const userId = rows[0].user_id;
           await UserToken.initializeToken(transactionClient, userId);
-          await Role.addRoleToUser(transactionClient, userId, 'user');
+          await Role.addRoleToUser(
+            transactionClient,
+            userId,
+            Role.USER_ROLE_ID
+          );
           break;
         }
         case 'update': {
@@ -46,6 +51,11 @@ class User {
           await UserToken.saveUserToken(
             this.id as number,
             '',
+            transactionClient
+          );
+          await Role.updateAdminRole(
+            this.id as number,
+            this.roles,
             transactionClient
           );
           break;
@@ -84,6 +94,10 @@ class User {
     return this.etag;
   }
 
+  getUserRoles() {
+    return this.roles;
+  }
+
   isDeleted(): boolean {
     return this.deleted_at !== null;
   }
@@ -109,6 +123,7 @@ class User {
   }
 
   static async loadUser(usernameToLoad: string) {
+    let roles: string[] = [];
     const getQuery = 'SELECT *, xmin as etag FROM users where username=$1';
     const { rows } = await query(getQuery, [usernameToLoad]);
     if (rows.length === 0) {
@@ -116,7 +131,19 @@ class User {
     }
     const { user_id, username, password, created_at, deleted_at, etag } =
       rows[0];
-    return new User(username, password, user_id, created_at, deleted_at, etag);
+
+    if (deleted_at === null) {
+      roles = await Role.getUserRoles(user_id);
+    }
+    return new User(
+      username,
+      password,
+      user_id,
+      created_at,
+      deleted_at,
+      etag,
+      roles
+    );
   }
 
   static async getUsers() {
@@ -137,13 +164,6 @@ class User {
       [username]
     );
     return rows.length === 0;
-  }
-
-  static async userLogout(userId: number) {
-    const addTokenToUserQuery =
-      'UPDATE users SET token=$1 WHERE user_id=$2 RETURNING user_id';
-    const { rows } = await query(addTokenToUserQuery, ['', userId]);
-    return rows.length === 1;
   }
 
   static async loadUserById(userId: number) {

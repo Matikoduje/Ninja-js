@@ -6,7 +6,8 @@ import RequestHandler from '../handlers/request-handler';
 import {
   isUpdateOperation,
   setUpdateParam,
-  verifyUpdatePasswordMatches
+  verifyUpdatePasswordMatches,
+  verifyUpdateUserRoles
 } from '../handlers/patch-user-handler';
 
 export const validationMiddleware = (schema: ObjectSchema) => {
@@ -50,6 +51,15 @@ export const validateJSONPatchForUpdateUser = async (
       updateParams = setUpdateParam(updateParams, element);
       if (element.path === '/confirm_password') {
         iteratedArray.splice(index, 1);
+      }
+      if (element.path === '/roles') {
+        if (!Array.isArray(element.value)) {
+          throw new StatusCodeError(
+            'If you want to change user roles. You should provide value for path \roles as array.',
+            400
+          );
+        }
+        verifyUpdateUserRoles(element.value);
       }
     });
     if (!verifyUpdatePasswordMatches(updateParams)) {

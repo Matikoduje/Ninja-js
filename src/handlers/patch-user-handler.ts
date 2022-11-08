@@ -1,3 +1,6 @@
+import { StatusCodeError } from './error-handler';
+import Role from '../models/role';
+
 export type UpdateOperation = {
   op: 'replace';
   path: string;
@@ -7,8 +10,11 @@ export type UpdateOperation = {
 const permittedUpdateUserParams = [
   '/username',
   '/password',
-  '/confirm_password'
+  '/confirm_password',
+  '/roles'
 ];
+
+const permittedUpdateUserRoles = ['admin', 'user'];
 
 export const isUpdateOperation = (
   operation: any
@@ -42,4 +48,22 @@ export const verifyUpdatePasswordMatches = (params: any) => {
     return password === confirm_password;
   }
   return password === undefined && confirm_password === undefined;
+};
+
+export const verifyUpdateUserRoles = (roles: Array<string>) => {
+  if (!roles.includes('user')) {
+    throw new StatusCodeError(
+      "Role user can't' be remove manually. Should be added for every /roles operation replace.",
+      422
+    );
+  }
+
+  roles.forEach((roleName) => {
+    if (!permittedUpdateUserRoles.includes(roleName)) {
+      throw new StatusCodeError(
+        'You can use only existing user roles: admin and user',
+        422
+      );
+    }
+  });
 };
