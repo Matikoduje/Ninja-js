@@ -1,5 +1,12 @@
 ## Setup
 
+Before use APP, please add values to variables in .env file.
+
+POSTGRES_USER=root
+POSTGRES_PASSWORD=root
+POSTGRES_DB=root
+POSTGRES_PORT=5432
+
 To use this project, type command "docker-compose build" in main catalog.
 
 Next start work with one of environment APP containers:
