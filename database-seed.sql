@@ -7,6 +7,14 @@ CREATE TABLE users
     deleted_at TIMESTAMP
 );
 
+CREATE TABLE capsules
+(
+    id SERIAL PRIMARY KEY,
+    source VARCHAR (50) DEFAULT 'spacexAPI',
+    deleted_at TIMESTAMP,
+    starlink_data JSONB
+);
+
 CREATE TABLE roles
 (
     role_id SERIAL PRIMARY KEY,

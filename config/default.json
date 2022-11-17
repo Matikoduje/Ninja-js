@@ -12,6 +12,7 @@
     "jsonWebTokensConfiguration": {
       "accessTokenSecret": "VZ8weqW2weqOC5sdaLYMoDxCVUEer34weErqPjWpMKb614",
       "expiresIn": "1h"
-    }
+    },
+    "capsulesGetRoute": "https://api.spacexdata.com/v4/capsules"
   }
 }
