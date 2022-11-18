@@ -1,4 +1,4 @@
-import { query, client } from '../db/database';
+import { query } from '../db/database';
 import format from 'pg-format';
 
 export type CapsuleData = {
@@ -13,11 +13,6 @@ export type CapsuleData = {
   id: string;
 };
 
-type CapsuleRecord = {
-  source: string;
-  data: CapsuleData;
-};
-
 export default class Capsule {
   constructor(
     private id: number | null = null,
@@ -26,28 +21,22 @@ export default class Capsule {
   ) {}
 
   static async areCapsulesFetchFromAPI(): Promise<boolean> {
-    const { rows } = await query('SELECT id FROM capsules WHERE source=$1', [
+    const { rows } = await query('SELECT id FROM capsules WHERE creator=$1', [
       'spacexAPI'
     ]);
 
     return rows.length === 0 ? false : true;
   }
 
-  static async fetchCapsulesFromAPI(
-    fetchedData: Array<CapsuleRecord>
-  ): Promise<void> {
-    const transactionClient = await client();
-    try {
-      await transactionClient.query('BEGIN');
-      await query(
-        format('INSERT INTO capsules (source, data) VALUES %L', fetchedData),
-        []
-      );
-      await transactionClient.query('COMMIT');
-    } catch (err) {
-      await transactionClient.query('ROLLBACK');
-    } finally {
-      transactionClient.release();
-    }
+  static async fetchCapsulesFromAPI(fetchedData: Array<string>): Promise<void> {
+    await query(
+      format('INSERT INTO capsules (data) VALUES %L', fetchedData),
+      []
+    );
+  }
+
+  static async getCapsules() {
+    const { rows } = await query('SELECT * FROM capsules', []);
+    return rows;
   }
 }

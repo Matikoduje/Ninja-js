@@ -10,9 +10,10 @@ CREATE TABLE users
 CREATE TABLE capsules
 (
     id SERIAL PRIMARY KEY,
-    source VARCHAR (50) DEFAULT 'spacexAPI',
+    creator VARCHAR (255) DEFAULT 'spacexAPI',
     deleted_at TIMESTAMP,
-    starlink_data JSONB
+    created_at TIMESTAMP DEFAULT NOW(),
+    data JSONB
 );
 
 CREATE TABLE roles

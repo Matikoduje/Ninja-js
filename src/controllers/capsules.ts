@@ -11,10 +11,7 @@ const fetchDataFromAPI = async () => {
   });
   const fetchedData = await response.json();
   const fetchedCapsules = fetchedData.map((fetchedElement: CapsuleData) => {
-    return {
-      source: 'spacexAPI',
-      data: fetchedElement
-    };
+    return Array(JSON.stringify(fetchedElement));
   });
   await Capsule.fetchCapsulesFromAPI(fetchedCapsules);
 };
@@ -29,8 +26,16 @@ export const getCapsules = async (
     if (!areCapsulesFetched) {
       await fetchDataFromAPI();
     }
+    const capsules = await Capsule.getCapsules();
+    res.status(200).json({ capsules });
   } catch (err) {
     const error = appErrorHandler(err);
     next(error);
   }
 };
+
+export const getCapsule = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {};
