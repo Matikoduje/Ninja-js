@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { StatusCodeError, appErrorHandler } from '../handlers/error-handler';
 import config from 'config';
 import Role from '../models/role';
-import UserToken from '../models/userToken';
+import User from '../models/user';
 import RequestHandler from '../handlers/request-handler';
 
 const accessTokenSecret: string = config.get(
@@ -44,7 +44,7 @@ export const isUserAuthenticated = async (
         401
       );
     }
-    await UserToken.isTokenValid(id, token);
+    await User.isTokenValid(id, token);
     req.authenticatedUserId = id;
     return next();
   } catch (err) {

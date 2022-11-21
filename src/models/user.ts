@@ -1,66 +1,65 @@
 import { query, client } from '../db/database';
 import Role from './role';
-import UserToken from './userToken';
 import { StatusCodeError } from '../handlers/error-handler';
+import { PoolClient } from 'pg';
 
 class User {
   constructor(
     private username: string,
     private password: string,
     private id: number | null = null,
+    private token: string = '',
     private created_at: Date | null = null,
     private deleted_at: Date | null = null,
     private etag: string = '',
     private roles: string[] = []
   ) {}
 
-  async save() {
-    const operation = this.id !== null ? 'update' : 'save';
-
+  async update() {
+    if (this.id === null) {
+      throw new StatusCodeError('Operation update is not allowed.', 500);
+    }
     const transactionClient = await client();
-
     try {
       await transactionClient.query('BEGIN');
+      const updateUserQuery =
+        'UPDATE users SET password=$1, username=$2 WHERE user_id=$3 and xmin=$4';
+      await transactionClient.query(updateUserQuery, [
+        this.password,
+        this.username,
+        this.id,
+        this.etag
+      ]);
+      await this.saveToken('', transactionClient);
+      await Role.updateAdminRole(
+        this.id as number,
+        this.roles,
+        transactionClient
+      );
+      await transactionClient.query('COMMIT');
+    } catch (err) {
+      await transactionClient.query('ROLLBACK');
+      throw err;
+    } finally {
+      transactionClient.release();
+    }
+  }
 
-      switch (operation) {
-        case 'save': {
-          const insertUserQuery =
-            'INSERT INTO users(password, username) VALUES($1, $2) RETURNING user_id';
-          const { rows } = await transactionClient.query(insertUserQuery, [
-            this.password,
-            this.username
-          ]);
-          const userId = rows[0].user_id;
-          await UserToken.initializeToken(transactionClient, userId);
-          await Role.addRoleToUser(
-            transactionClient,
-            userId,
-            Role.USER_ROLE_ID
-          );
-          break;
-        }
-        case 'update': {
-          const updateUserQuery =
-            'UPDATE users SET password=$1, username=$2 WHERE user_id=$3 and xmin=$4';
-          await transactionClient.query(updateUserQuery, [
-            this.password,
-            this.username,
-            this.id,
-            this.etag
-          ]);
-          await UserToken.saveUserToken(
-            this.id as number,
-            '',
-            transactionClient
-          );
-          await Role.updateAdminRole(
-            this.id as number,
-            this.roles,
-            transactionClient
-          );
-          break;
-        }
-      }
+  async save() {
+    if (this.id !== null) {
+      throw new StatusCodeError('Operation save is not allowed.', 500);
+    }
+    const transactionClient = await client();
+    try {
+      await transactionClient.query('BEGIN');
+      const insertUserQuery =
+        'INSERT INTO users(password, username) VALUES($1, $2) RETURNING user_id';
+      const { rows } = await transactionClient.query(insertUserQuery, [
+        this.password,
+        this.username
+      ]);
+      const userId = rows[0].user_id;
+      await Role.addRoleToUser(transactionClient, userId, Role.USER_ROLE_ID);
       await transactionClient.query('COMMIT');
     } catch (err) {
       await transactionClient.query('ROLLBACK');
@@ -110,7 +109,7 @@ class User {
       const deleteUserQuery =
         'UPDATE users SET deleted_at=NOW() WHERE user_id=$1 and xmin=$2';
       await transactionClient.query(deleteUserQuery, [this.id, this.etag]);
-      await UserToken.saveUserToken(this.id as number, '', transactionClient);
+      await this.saveToken('', transactionClient);
       await Role.removeUserRoles(this.id as number, transactionClient);
       await transactionClient.query('COMMIT');
     } catch (err) {
@@ -122,6 +121,16 @@ class User {
     return User.loadUser(this.username);
   }
 
+  async saveToken(token: string, transactionClient: PoolClient | null) {
+    const saveTokenQuery = 'UPDATE users SET token=$1 WHERE user_id=$2';
+    const saveTokenParams = [token, this.id];
+    if (transactionClient !== null) {
+      await transactionClient.query(saveTokenQuery, saveTokenParams);
+    } else {
+      await query(saveTokenQuery, saveTokenParams);
+    }
+  }
+
   static async loadUser(usernameToLoad: string) {
     let roles: string[] = [];
     const getQuery = 'SELECT *, xmin as etag FROM users where username=$1';
@@ -129,7 +138,7 @@ class User {
     if (rows.length === 0) {
       throw new Error('');
     }
-    const { user_id, username, password, created_at, deleted_at, etag } =
+    const { user_id, username, password, created_at, deleted_at, etag, token } =
       rows[0];
 
     if (deleted_at === null) {
@@ -139,6 +148,7 @@ class User {
       username,
       password,
       user_id,
+      token,
       created_at,
       deleted_at,
       etag,
@@ -175,6 +185,16 @@ class User {
       throw new StatusCodeError('User Not Found', 404);
     }
     return await this.loadUser(rows[0].username);
+  }
+
+  static async isTokenValid(userId: number, token: string) {
+    const { rows } = await query(
+      'SELECT user_id FROM users WHERE user_id=$1 AND token=$2',
+      [userId, token]
+    );
+    if (rows.length === 0) {
+      throw new StatusCodeError('Provided token is not valid.', 401);
+    }
   }
 }
 

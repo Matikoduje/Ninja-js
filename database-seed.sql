@@ -4,7 +4,8 @@ CREATE TABLE users
     password VARCHAR (255) NOT NULL,
     username VARCHAR (255) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
-    deleted_at TIMESTAMP
+    deleted_at TIMESTAMP,
+    token TEXT DEFAULT ''
 );
 
 CREATE TABLE roles
@@ -24,15 +25,6 @@ CREATE TABLE user_roles
       REFERENCES users (user_id)
 );
 
-CREATE TABLE user_tokens
-(
-    user_id INT NOT NULL,
-    token TEXT DEFAULT '',
-    PRIMARY KEY (user_id),
-    FOREIGN KEY (user_id)
-      REFERENCES users (user_id)
-);
-
 INSERT INTO roles(role_name) VALUES ('admin');
 INSERT INTO roles(role_name) VALUES ('user');
 
@@ -43,7 +35,3 @@ INSERT INTO users(password, username, deleted_at) VALUES ('$2a$12$Ppm4DOlHGXg.Sv
 INSERT INTO user_roles(user_id, role_id) VALUES (1,1);
 INSERT INTO user_roles(user_id, role_id) VALUES (1,2);
 INSERT INTO user_roles(user_id, role_id) VALUES (2,2);
-
-INSERT INTO user_tokens(user_id) VALUES (1);
-INSERT INTO user_tokens(user_id) VALUES (2);
-INSERT INTO user_tokens(user_id) VALUES (3);
