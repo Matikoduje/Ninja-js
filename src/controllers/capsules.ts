@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { appErrorHandler } from '../handlers/error-handler';
 import config from 'config';
 import Capsule, { CapsuleData } from '../models/capsule';
+import RequestHandler from '../handlers/request-handler';
 
 const getCapsulesURL: string = config.get('App.capsulesGetRoute');
 
@@ -38,4 +39,36 @@ export const getCapsule = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  try {
+    const capsuleId = RequestHandler.getCapsuleIdFromParams(req);
+
+    const capsule = await Capsule.getCapsuleById(capsuleId);
+    const etag = await Capsule.getEtag(capsule.id);
+    res.status(200).set('ETag', etag).json({
+      capsule
+    });
+  } catch (err) {
+    const error = appErrorHandler(err);
+    next(error);
+  }
+};
+
+export const addCapsule = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  console.log(req.body);
+  // try {
+  //   console.log(req.body);
+  //   const capsule = await Capsule.getCapsuleById();
+  //   const etag = await Capsule.getEtag(capsule.id);
+  //   res.status(200).set('ETag', etag).json({
+  //     capsule
+  //   });
+  // } catch (err) {
+  //   const error = appErrorHandler(err);
+  //   next(error);
+  // }
+};
