@@ -3,7 +3,6 @@ import bcrypt from 'bcryptjs';
 import { StatusCodeError, appErrorHandler } from '../handlers/error-handler';
 import generateAccessToken from '../helpers/jswt-generate';
 import User from '../models/user';
-import UserToken from '../models/userToken';
 
 export const login = async (
   req: Request,
@@ -41,8 +40,7 @@ export const login = async (
       );
     }
     const accessToken = generateAccessToken(user);
-    await UserToken.saveUserToken(userId, accessToken, null);
-
+    await user.saveToken(accessToken, null);
     res.status(200).json({
       message:
         'Successfully login into site. Please save access token. You must set this token in authorization header to authorize actions in site. Format: Bearer AccessTokenValue',

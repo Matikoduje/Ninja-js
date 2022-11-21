@@ -112,7 +112,7 @@ export const updateUser = async (
       (element) => element !== undefined
     );
     applyPatch(user, filteredPatch);
-    await user.save();
+    await user.update();
     res.status(200).json({
       message: `User data was changed. Current token for user was deleted. Please login again into account.`
     });
