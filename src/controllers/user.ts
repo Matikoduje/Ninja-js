@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { appErrorHandler, StatusCodeError } from '../handlers/error-handler';
 import User from '../models/user';
 import { applyPatch } from 'fast-json-patch';
-import { UpdateOperation } from '../handlers/patch-user-handler';
+import { UpdateOperation } from '../handlers/patch-handler';
 
 export const getUsers = async (
   req: Request,

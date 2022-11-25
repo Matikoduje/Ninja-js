@@ -47,19 +47,50 @@ export default class Capsule {
     const { rows } = await query('SELECT * FROM capsules WHERE id=$1', [
       capsuleId
     ]);
-    if (rows.length === 0) {
-      throw new StatusCodeError('Capsule Not Found', 404);
-    }
     return rows[0];
   }
 
-  static async getEtag(capsuleId: number) {
+  static async getEtag(capsuleId: number): Promise<string> {
     const { rows } = await query('SELECT xmin FROM capsules WHERE id=$1', [
       capsuleId
     ]);
-    if (rows.length === 0) {
-      throw new StatusCodeError('Capsule Not Found', 404);
-    }
     return rows[0].xmin;
+  }
+
+  static async save(data: string, creator: string): Promise<CapsuleRecord> {
+    const { rows } = await query(
+      'INSERT INTO capsules (creator, data) VALUES ($1,$2) returning id',
+      [creator, data]
+    );
+    return this.getCapsuleById(rows[0].id);
+  }
+
+  static async update(capsuleId: number, data: any): Promise<void> {
+    await query('UPDATE capsules SET data=$1 WHERE id=$2 returning id', [
+      data,
+      capsuleId
+    ]);
+  }
+
+  static async delete(capsuleId: number): Promise<void> {
+    await query(
+      'UPDATE capsules SET deleted_at=NOW() WHERE id=$1 returning id',
+      [capsuleId]
+    );
+  }
+
+  static async isValidCapsuleId(capsuleId: number): Promise<boolean> {
+    const { rows } = await query('SELECT id FROM capsules WHERE id=$1', [
+      capsuleId
+    ]);
+    return rows.length === 0 ? false : true;
+  }
+
+  static async verifyEtag(capsuleId: number, etag: string): Promise<boolean> {
+    const { rows } = await query(
+      'SELECT id FROM capsules WHERE id=$1 and xmin=$2',
+      [capsuleId, etag]
+    );
+    return rows.length === 0 ? false : true;
   }
 }
