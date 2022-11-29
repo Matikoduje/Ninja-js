@@ -1,6 +1,10 @@
 {
   "App": {
     "port": 8080,
-    "logLevel": "info"
+    "logLevel": "info",
+    "jsonWebTokensConfiguration": {
+      "accessTokenSecret": "VZ8dOC5fALYMoDxCVUEtDqPjWpMKb614",
+      "expiresIn": "15m"
+    }
   }
 }

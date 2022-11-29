@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { Pool, PoolClient, QueryResult } from 'pg';
 import config from 'config';
 
 const postgresConnectionString: string = config.get(
@@ -9,20 +9,21 @@ const pool = new Pool({
   connectionString: postgresConnectionString
 });
 
-const query = (text: string, params: any) => {
+export const query = (text: string, params: any): Promise<QueryResult<any>> => {
   return pool.query(text, params);
 };
 
-const dbCheck = async () => {
+export const client = async (): Promise<PoolClient> => {
+  return await pool.connect();
+};
+
+export const dbCheck = async (): Promise<string> => {
   try {
-    const { rows } = await query('SELECT * FROM testSeed', []);
+    const { rows } = await query('SELECT * FROM users', []);
     return rows.length > 0
       ? 'Database created and connected successfully.'
       : "Database seed doesn't work correctly.";
-  } catch (error) {
+  } catch (err) {
     throw new Error("Can't connect to database");
   }
 };
-
-export { dbCheck, query };
-export default query;

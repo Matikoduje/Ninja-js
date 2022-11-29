@@ -1,14 +1,10 @@
-import express from 'express';
-
 import config from 'config';
-import routes from './routes/ninja';
 import { dbCheck } from './db/database';
 import logger from './logger/_logger';
+import app from './app/_app';
 
-const app = express();
 const port: number = config.get('App.port');
 const host: string = config.get('App.host');
-app.use(routes);
 
 async function startServer() {
   try {

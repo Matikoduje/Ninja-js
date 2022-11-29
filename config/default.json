@@ -8,6 +8,10 @@
       "user": "",
       "password": "",
       "database": ""
+    },
+    "jsonWebTokensConfiguration": {
+      "accessTokenSecret": "VZ8weqW2weqOC5sdaLYMoDxCVUEer34weErqPjWpMKb614",
+      "expiresIn": "1h"
     }
   }
 }

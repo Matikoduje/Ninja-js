@@ -3,7 +3,9 @@
     "composite": true,
     "rootDir": ".",
     "resolveJsonModule": true,
-    "outDir": "."
+    "esModuleInterop": true,
+    "outDir": ".",
+    "typeRoots": ["./src/types"]
   },
   "files": ["package.json"]
 }
