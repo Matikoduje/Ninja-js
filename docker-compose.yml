@@ -2,6 +2,7 @@ version: '3.6'
 services:
   #================================= DEVELOPMENT =============================================
   app-dev:
+    container_name: app-dev
     build:
       context: .
       target: development
@@ -12,12 +13,15 @@ services:
     env_file:
       - ./.env
     environment:
-      - POSTGRES_CONNECTION_STRING=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+      POSTGRES_CONNECTION_STRING: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
     volumes:
       - ./:/app/
       - /app/node_modules
+    networks:
+      - network
   #================================= TEST =============================================
   app-test:
+    container_name: app-test
     build:
       context: .
       target: test
@@ -29,13 +33,16 @@ services:
     env_file:
       - ./.env
     environment:
-      - POSTGRES_CONNECTION_STRING=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
-      - NODE_ENV=test
+      POSTGRES_CONNECTION_STRING: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+      NODE_ENV: test
     volumes:
       - ./:/app/
       - /app/node_modules
+    networks:
+      - network
   #================================= PRODUCTION =============================================
   app-prod:
+    container_name: app-prod
     build:
       context: .
       target: production
@@ -47,8 +54,10 @@ services:
     env_file:
       - ./.env
     environment:
-      - POSTGRES_CONNECTION_STRING=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
-      - NODE_ENV=production
+      POSTGRES_CONNECTION_STRING: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+      NODE_ENV: production
+    networks:
+      - network
   #================================= POSTGRES DB =============================================
   postgres:
     container_name: pg_container
@@ -63,3 +72,10 @@ services:
       # provided in the `docker-entrypoint-initdb.d` directory, this connects
       # our seed file to that directory so that it gets run
       - ./database-seed.sql:/docker-entrypoint-initdb.d/database-seed.sql
+    networks:
+      - network
+
+networks:
+  network:
+    driver: bridge
+    name: ninja_network

@@ -1,4 +1,4 @@
-import { query } from '../db/database';
+import { query, getMaxXminFromTable } from '../db/database';
 import format from 'pg-format';
 import { StatusCodeError } from '../handlers/error-handler';
 
@@ -40,6 +40,14 @@ export default class Capsule {
 
   static async getCapsules(): Promise<Array<CapsuleRecord>> {
     const { rows } = await query('SELECT * FROM capsules', []);
+    return rows;
+  }
+
+  static async syncCapsules(etag: string): Promise<Array<CapsuleRecord>> {
+    const { rows } = await query(
+      'SELECT * FROM capsules where xmin::text::bigint>$1',
+      [etag]
+    );
     return rows;
   }
 
@@ -92,5 +100,10 @@ export default class Capsule {
       [capsuleId, etag]
     );
     return rows.length === 0 ? false : true;
+  }
+
+  static async getCapsulesMaxXmin() {
+    const { rows } = await getMaxXminFromTable('capsules');
+    return rows[0].max;
   }
 }

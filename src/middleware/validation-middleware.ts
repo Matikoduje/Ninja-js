@@ -41,4 +41,19 @@ export const getEtagFromHeader = (req: Request) => {
   return etag;
 };
 
+export const getEtagFromSyncHeader = (req: Request) => {
+  let etag;
+  if (req.headers['if-none-match']) {
+    etag = req.headers['if-none-match'];
+  }
+  if (!etag) {
+    throw new StatusCodeError(
+      'A required header if-none-match is missing. In if-none-match header you should set etag value.',
+      400
+    );
+  }
+
+  return etag;
+};
+
 export default validationMiddleware;

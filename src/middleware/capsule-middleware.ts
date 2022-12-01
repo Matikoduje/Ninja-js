@@ -32,7 +32,6 @@ export const validateCapsuleEtag = async (
   try {
     etag = getEtagFromHeader(req);
     const capsuleId = RequestHandler.getCapsuleIdFromParams(req);
-
     const isValidEtag = await Capsule.verifyEtag(capsuleId, etag);
     if (!isValidEtag) {
       throw new StatusCodeError(
