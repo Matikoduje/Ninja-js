@@ -5,6 +5,7 @@ import Capsule from '../models/capsule';
 
 const getSync = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log('dadad');
     const etag = getEtagFromSyncHeader(req);
     const maxXmin = await Capsule.getCapsulesMaxXmin();
     if (!maxXmin) {

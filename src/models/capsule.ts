@@ -1,6 +1,5 @@
 import { query, getMaxXminFromTable } from '../db/database';
 import format from 'pg-format';
-import { StatusCodeError } from '../handlers/error-handler';
 
 export type CapsuleData = {
   reuse_count: number;
