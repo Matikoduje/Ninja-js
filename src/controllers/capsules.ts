@@ -8,7 +8,7 @@ import { applyPatch } from 'fast-json-patch';
 
 const getCapsulesURL: string = config.get('App.capsulesGetRoute');
 
-const fetchDataFromAPI = async () => {
+export const fetchDataFromAPI = async () => {
   const response = await fetch(getCapsulesURL, {
     method: 'GET'
   });

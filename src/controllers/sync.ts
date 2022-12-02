@@ -2,10 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import { appErrorHandler, StatusCodeError } from '../handlers/error-handler';
 import { getEtagFromSyncHeader } from '../middleware/validation-middleware';
 import Capsule from '../models/capsule';
+import { fetchDataFromAPI } from './capsules';
 
 const getSync = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    console.log('dadad');
+    const areCapsulesFetched = await Capsule.areCapsulesFetchFromAPI();
+    if (!areCapsulesFetched) {
+      await fetchDataFromAPI();
+    }
     const etag = getEtagFromSyncHeader(req);
     const maxXmin = await Capsule.getCapsulesMaxXmin();
     if (!maxXmin) {
