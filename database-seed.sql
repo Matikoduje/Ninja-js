@@ -8,6 +8,15 @@ CREATE TABLE users
     token TEXT DEFAULT ''
 );
 
+CREATE TABLE capsules
+(
+    id SERIAL PRIMARY KEY,
+    creator VARCHAR (255) DEFAULT 'spacexAPI',
+    deleted_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    data JSONB
+);
+
 CREATE TABLE roles
 (
     role_id SERIAL PRIMARY KEY,

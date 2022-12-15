@@ -13,20 +13,29 @@ const permittedUpdateUserParams = [
   '/roles'
 ];
 
+const permittedUpdateCapsuleParams = ['/data'];
+
 const permittedUpdateUserRoles = ['admin', 'user'];
 
 export const isUpdateOperation = (
+  patchedObject: string,
   operation: any
 ): operation is UpdateOperation => {
+  let permittedUpdateParams;
+  if (patchedObject === 'User') {
+    permittedUpdateParams = permittedUpdateUserParams;
+  } else {
+    permittedUpdateParams = permittedUpdateCapsuleParams;
+  }
   return (
     operation.op === 'replace' &&
     typeof operation.path !== 'undefined' &&
-    permittedUpdateUserParams.includes(operation.path) &&
+    permittedUpdateParams.includes(operation.path) &&
     typeof operation.value !== 'undefined'
   );
 };
 
-export const setUpdateParam = (params: any, operation: UpdateOperation) => {
+export const setUpdateUserParam = (params: any, operation: UpdateOperation) => {
   switch (operation.path) {
     case '/username':
       params.username = operation.value;

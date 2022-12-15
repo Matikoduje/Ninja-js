@@ -27,3 +27,8 @@ export const dbCheck = async (): Promise<string> => {
     throw new Error("Can't connect to database");
   }
 };
+
+export const getMaxXminFromTable = async (tableName: string) => {
+  const maxXminQuery = `SELECT MAX(xmin::text::bigint) FROM ${tableName}`;
+  return await query(maxXminQuery, []);
+};

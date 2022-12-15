@@ -8,16 +8,18 @@ import {
 } from '../controllers/user';
 import userValidationSchemas from '../validators/user';
 import {
-  validationMiddleware,
-  validationUpdateMiddleware,
   validateUserIdFromParams,
-  validateETag,
-  validateJSONPatchForUpdateUser
+  validateUserEtag
+} from '../middleware/user-middleware';
+import {
+  validationMiddleware,
+  validationUpdateMiddleware
 } from '../middleware/validation-middleware';
 import {
   isUserAuthenticated,
   isUserAuthorized
 } from '../middleware/auth-middleware';
+import { updateUserJSONPatchValidation } from '../middleware/json-patch-middleware';
 
 const router = Router();
 
@@ -41,7 +43,7 @@ router.delete(
   isUserAuthenticated,
   isUserAuthorized,
   validateUserIdFromParams,
-  validateETag,
+  validateUserEtag,
   deleteUser
 );
 
@@ -50,8 +52,8 @@ router.patch(
   isUserAuthenticated,
   isUserAuthorized,
   validateUserIdFromParams,
-  validateJSONPatchForUpdateUser,
-  validateETag,
+  updateUserJSONPatchValidation,
+  validateUserEtag,
   validationUpdateMiddleware(userValidationSchemas.update),
   updateUser
 );
